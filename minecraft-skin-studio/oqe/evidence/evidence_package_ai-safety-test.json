@@ -1,0 +1,29 @@
+{
+  "changeId": "ai-safety-test",
+  "measurements": [
+    {
+      "metric": "content_filter_accuracy",
+      "baselineValue": 96.5,
+      "targetValue": 95,
+      "actualValue": 96.5,
+      "improvement": 0,
+      "passed": false,
+      "evidence": [
+        "content_filter_accuracy_ai-safety-test.json"
+      ],
+      "timestamp": "2025-08-03T22:31:13.007Z"
+    }
+  ],
+  "statisticalSignificance": {
+    "pValue": 0.5,
+    "confidenceInterval": [
+      0,
+      0
+    ],
+    "sampleSize": 1000
+  },
+  "artifacts": [
+    "content_filter_accuracy_ai-safety-test.json"
+  ],
+  "certificateHash": "fb5e087c9696bb0235cd36a94b3be36d41d0edc71965fee0f103b37bd12fe8eb"
+}

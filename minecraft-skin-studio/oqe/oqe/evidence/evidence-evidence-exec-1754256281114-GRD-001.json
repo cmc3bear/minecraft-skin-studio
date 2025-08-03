@@ -1,0 +1,83 @@
+{
+  "id": "evidence-exec-1754256281114-GRD-001",
+  "type": "test",
+  "timestamp": "2025-08-03T21:24:41.167Z",
+  "source": "guardian-test-executor",
+  "data": {
+    "testPlanId": "GRD-001",
+    "executionId": "exec-1754256281114-GRD-001",
+    "status": "failed",
+    "duration": 52.3577,
+    "results": [
+      {
+        "testCaseId": "GRD-001-TC001",
+        "status": "failed",
+        "assertions": 2,
+        "passed": 0
+      },
+      {
+        "testCaseId": "GRD-001-TC002",
+        "status": "failed",
+        "assertions": 2,
+        "passed": 0
+      },
+      {
+        "testCaseId": "GRD-001-TC003",
+        "status": "failed",
+        "assertions": 2,
+        "passed": 0
+      },
+      {
+        "testCaseId": "GRD-001-TC004",
+        "status": "failed",
+        "assertions": 2,
+        "passed": 0
+      }
+    ],
+    "timestamp": "2025-08-03T21:24:41.114Z"
+  },
+  "artifacts": [
+    {
+      "type": "data",
+      "path": "D:\\dev\\minecraft-skin-studio\\minecraft-skin-studio\\oqe\\oqe\\evidence\\GRD-001-TC001-output-1754256281160.json",
+      "hash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "size": 2,
+      "metadata": {
+        "created": "2025-08-03T21:24:41.162Z",
+        "modified": "2025-08-03T21:24:41.162Z"
+      }
+    },
+    {
+      "type": "data",
+      "path": "D:\\dev\\minecraft-skin-studio\\minecraft-skin-studio\\oqe\\oqe\\evidence\\GRD-001-TC002-output-1754256281163.json",
+      "hash": "1ea1659c48ecdda00eda409478ebcccdb20f71d042d60398f5f5dae960ad50f7",
+      "size": 1071,
+      "metadata": {
+        "created": "2025-08-03T21:24:41.166Z",
+        "modified": "2025-08-03T21:24:41.166Z"
+      }
+    },
+    {
+      "type": "data",
+      "path": "D:\\dev\\minecraft-skin-studio\\minecraft-skin-studio\\oqe\\oqe\\evidence\\GRD-001-TC003-output-1754256281164.json",
+      "hash": "116cff712b8a077ad6ef3f31ba39492540809b194420a25157e4f9a60c26eb7f",
+      "size": 1127,
+      "metadata": {
+        "created": "2025-08-03T21:24:41.166Z",
+        "modified": "2025-08-03T21:24:41.166Z"
+      }
+    },
+    {
+      "type": "data",
+      "path": "D:\\dev\\minecraft-skin-studio\\minecraft-skin-studio\\oqe\\oqe\\evidence\\GRD-001-TC004-output-1754256281165.json",
+      "hash": "1a564eaab14c7ced8be1ae2c1ebda417e71b43f82fd279f6aeaa05f995862be2",
+      "size": 1252,
+      "metadata": {
+        "created": "2025-08-03T21:24:41.166Z",
+        "modified": "2025-08-03T21:24:41.166Z"
+      }
+    }
+  ],
+  "signature": "f7b0250404bbb1d56a44f00e17f38aca68779a88d11a71fb7d1ee5b09349d5af",
+  "verified": true
+}

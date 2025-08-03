@@ -1,0 +1,29 @@
+{
+  "changeId": "ai-service-implemented",
+  "measurements": [
+    {
+      "metric": "content_filter_accuracy",
+      "baselineValue": 96.5,
+      "targetValue": 95,
+      "actualValue": 96.5,
+      "improvement": 0,
+      "passed": false,
+      "evidence": [
+        "content_filter_accuracy_ai-service-implemented.json"
+      ],
+      "timestamp": "2025-08-03T22:31:07.624Z"
+    }
+  ],
+  "statisticalSignificance": {
+    "pValue": 0.5,
+    "confidenceInterval": [
+      0,
+      0
+    ],
+    "sampleSize": 1000
+  },
+  "artifacts": [
+    "content_filter_accuracy_ai-service-implemented.json"
+  ],
+  "certificateHash": "41b6e1d5b2b621180469217d01e3284e018c6c28ed85a3692ef5fda36c416456"
+}

@@ -1,0 +1,57 @@
+{
+  "safety": [
+    {
+      "safe": true,
+      "violations": [],
+      "processingTime": 0,
+      "timestamp": "2025-08-03T22:31:26.432Z",
+      "filterVersion": "1.0.0"
+    },
+    {
+      "safe": true,
+      "violations": [],
+      "processingTime": 0,
+      "timestamp": "2025-08-03T22:31:26.432Z",
+      "filterVersion": "1.0.0"
+    },
+    {
+      "safe": true,
+      "violations": [],
+      "processingTime": 0,
+      "timestamp": "2025-08-03T22:31:26.432Z",
+      "filterVersion": "1.0.0"
+    },
+    {
+      "safe": true,
+      "violations": [],
+      "processingTime": 0,
+      "timestamp": "2025-08-03T22:31:26.432Z",
+      "filterVersion": "1.0.0"
+    },
+    {
+      "safe": true,
+      "violations": [],
+      "processingTime": 0,
+      "timestamp": "2025-08-03T22:31:26.432Z",
+      "filterVersion": "1.0.0"
+    },
+    {
+      "safe": false,
+      "violations": [
+        "Blocked pattern detected: DAMN"
+      ],
+      "processingTime": 0,
+      "timestamp": "2025-08-03T22:31:26.432Z",
+      "filterVersion": "1.0.0"
+    },
+    {
+      "safe": false,
+      "violations": [
+        "Blocked pattern detected: DaMn"
+      ],
+      "processingTime": 0,
+      "timestamp": "2025-08-03T22:31:26.432Z",
+      "filterVersion": "1.0.0"
+    }
+  ]
+}

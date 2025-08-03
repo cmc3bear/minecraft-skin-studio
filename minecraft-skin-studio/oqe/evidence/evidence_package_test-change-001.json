@@ -1,0 +1,29 @@
+{
+  "changeId": "test-change-001",
+  "measurements": [
+    {
+      "metric": "system_stability",
+      "baselineValue": 100,
+      "targetValue": 100,
+      "actualValue": 99.8,
+      "improvement": -0.20000000000000281,
+      "passed": true,
+      "evidence": [
+        "system_stability_test-change-001.json"
+      ],
+      "timestamp": "2025-08-03T22:28:19.806Z"
+    }
+  ],
+  "statisticalSignificance": {
+    "pValue": 0.5,
+    "confidenceInterval": [
+      -0.20000000000000281,
+      -0.20000000000000281
+    ],
+    "sampleSize": 1000
+  },
+  "artifacts": [
+    "system_stability_test-change-001.json"
+  ],
+  "certificateHash": "3dc942bc9a69d97adcfc253279e701e6dd21b33dea0d3ded009e726e2d7dea4a"
+}

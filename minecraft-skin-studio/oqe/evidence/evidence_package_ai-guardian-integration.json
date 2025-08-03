@@ -1,0 +1,29 @@
+{
+  "changeId": "ai-guardian-integration",
+  "measurements": [
+    {
+      "metric": "content_filter_accuracy",
+      "baselineValue": 96.5,
+      "targetValue": 95,
+      "actualValue": 96.5,
+      "improvement": 0,
+      "passed": false,
+      "evidence": [
+        "content_filter_accuracy_ai-guardian-integration.json"
+      ],
+      "timestamp": "2025-08-03T22:31:52.676Z"
+    }
+  ],
+  "statisticalSignificance": {
+    "pValue": 0.5,
+    "confidenceInterval": [
+      0,
+      0
+    ],
+    "sampleSize": 1000
+  },
+  "artifacts": [
+    "content_filter_accuracy_ai-guardian-integration.json"
+  ],
+  "certificateHash": "265f2d5075450ff2c24939905d492fd65be3dbc763386db3efc6afeff4aa55f3"
+}

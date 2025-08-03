@@ -1,0 +1,50 @@
+{
+  "safety": [
+    {
+      "safe": false,
+      "violations": [
+        "Failed personal_info filter"
+      ],
+      "processingTime": 0,
+      "timestamp": "2025-08-03T21:24:19.072Z",
+      "filterVersion": "1.0.0"
+    },
+    {
+      "safe": false,
+      "violations": [
+        "Blocked pattern detected: 123 Main Street",
+        "Failed personal_info filter"
+      ],
+      "processingTime": 0,
+      "timestamp": "2025-08-03T21:24:19.072Z",
+      "filterVersion": "1.0.0"
+    },
+    {
+      "safe": false,
+      "violations": [
+        "Failed personal_info filter"
+      ],
+      "processingTime": 0,
+      "timestamp": "2025-08-03T21:24:19.072Z",
+      "filterVersion": "1.0.0"
+    },
+    {
+      "safe": false,
+      "violations": [
+        "Blocked pattern detected: kid@example.com"
+      ],
+      "processingTime": 0,
+      "timestamp": "2025-08-03T21:24:19.072Z",
+      "filterVersion": "1.0.0"
+    },
+    {
+      "safe": false,
+      "violations": [
+        "Failed personal_info filter"
+      ],
+      "processingTime": 0,
+      "timestamp": "2025-08-03T21:24:19.072Z",
+      "filterVersion": "1.0.0"
+    }
+  ]
+}

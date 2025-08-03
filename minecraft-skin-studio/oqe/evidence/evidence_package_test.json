@@ -1,0 +1,29 @@
+{
+  "changeId": "test",
+  "measurements": [
+    {
+      "metric": "feature_response_time",
+      "baselineValue": 3.2,
+      "targetValue": 3,
+      "actualValue": 2.8,
+      "improvement": -12.50000000000001,
+      "passed": true,
+      "evidence": [
+        "response_time_test.json"
+      ],
+      "timestamp": "2025-08-03T22:31:22.487Z"
+    }
+  ],
+  "statisticalSignificance": {
+    "pValue": 0.5,
+    "confidenceInterval": [
+      -12.50000000000001,
+      -12.50000000000001
+    ],
+    "sampleSize": 1000
+  },
+  "artifacts": [
+    "response_time_test.json"
+  ],
+  "certificateHash": "383dba27054aafb4843b07dff3af39006cdb8d81bfb629d5d144efaea8c728d9"
+}

@@ -1,0 +1,187 @@
+.editor-page {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #2a2a2a;
+  color: white;
+}
+
+.editor-header {
+  background: #1a1a1a;
+  padding: 1rem 2rem;
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  border-bottom: 2px solid #444;
+}
+
+.back-button {
+  background: none;
+  border: 2px solid #666;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.back-button:hover {
+  background: #444;
+  border-color: #888;
+}
+
+.project-name {
+  flex: 1;
+  background: #333;
+  border: 2px solid #555;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 1.2rem;
+}
+
+.save-button {
+  background: #4CAF50;
+  border: none;
+  color: white;
+  padding: 0.5rem 2rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.save-button:hover {
+  background: #45a049;
+}
+
+.export-button {
+  background: #2196F3;
+  border: none;
+  color: white;
+  padding: 0.5rem 2rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.export-button:hover {
+  background: #1976D2;
+}
+
+.editor-content {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+.toolbar {
+  width: 250px;
+  background: #1a1a1a;
+  padding: 1.5rem;
+  overflow-y: auto;
+  border-right: 2px solid #444;
+}
+
+.toolbar h3 {
+  margin-bottom: 1rem;
+  color: #aaa;
+  font-size: 1rem;
+  text-transform: uppercase;
+}
+
+.tool-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+}
+
+.tool-button {
+  background: #333;
+  border: 2px solid #555;
+  color: white;
+  padding: 0.75rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  text-align: center;
+}
+
+.tool-button:hover {
+  background: #444;
+  border-color: #777;
+}
+
+.tool-button.active {
+  background: #667eea;
+  border-color: #667eea;
+}
+
+
+.canvas-area {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #222;
+  padding: 2rem;
+}
+
+
+.preview-panel {
+  width: 300px;
+  background: #1a1a1a;
+  padding: 1.5rem;
+  border-left: 2px solid #444;
+}
+
+.preview-panel h3 {
+  margin-bottom: 1rem;
+  color: #aaa;
+  font-size: 1rem;
+  text-transform: uppercase;
+}
+
+.preview-container {
+  background: #333;
+  border: 2px solid #555;
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.placeholder-preview {
+  height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #444;
+  border: 2px dashed #666;
+  border-radius: 8px;
+  color: #888;
+}
+
+@media (max-width: 1200px) {
+  .preview-panel {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .toolbar {
+    width: 200px;
+  }
+  
+  .tool-buttons {
+    grid-template-columns: 1fr;
+  }
+}

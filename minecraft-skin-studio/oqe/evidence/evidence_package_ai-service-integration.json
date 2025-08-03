@@ -1,0 +1,29 @@
+{
+  "changeId": "ai-service-integration",
+  "measurements": [
+    {
+      "metric": "feature_response_time",
+      "baselineValue": 3.2,
+      "targetValue": 3,
+      "actualValue": 2.8,
+      "improvement": -12.50000000000001,
+      "passed": true,
+      "evidence": [
+        "response_time_ai-service-integration.json"
+      ],
+      "timestamp": "2025-08-03T22:28:38.964Z"
+    }
+  ],
+  "statisticalSignificance": {
+    "pValue": 0.5,
+    "confidenceInterval": [
+      -12.50000000000001,
+      -12.50000000000001
+    ],
+    "sampleSize": 1000
+  },
+  "artifacts": [
+    "response_time_ai-service-integration.json"
+  ],
+  "certificateHash": "3231e430ddd32ddf984da588d1abc7219ff493228636f6748d1a5ec35b1b49bd"
+}

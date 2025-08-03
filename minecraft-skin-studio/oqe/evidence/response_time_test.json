@@ -1,0 +1,8 @@
+{
+  "testId": "response-time-test",
+  "baselineTime": 3.2,
+  "actualTime": 2.8,
+  "improvement": 12.50000000000001,
+  "measurementCount": 100,
+  "timestamp": "2025-08-03T22:31:22.484Z"
+}

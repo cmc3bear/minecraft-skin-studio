@@ -1,0 +1,50 @@
+{
+  "appropriate": [
+    {
+      "safe": true,
+      "violations": [],
+      "processingTime": 0,
+      "timestamp": "2025-08-03T21:24:41.163Z",
+      "filterVersion": "1.0.0"
+    },
+    {
+      "safe": true,
+      "violations": [],
+      "processingTime": 0,
+      "timestamp": "2025-08-03T21:24:41.163Z",
+      "filterVersion": "1.0.0"
+    },
+    {
+      "safe": true,
+      "violations": [],
+      "processingTime": 0,
+      "timestamp": "2025-08-03T21:24:41.163Z",
+      "filterVersion": "1.0.0"
+    }
+  ],
+  "inappropriate": [
+    {
+      "safe": false,
+      "violations": [
+        "Blocked pattern detected: damn"
+      ],
+      "processingTime": 0,
+      "timestamp": "2025-08-03T21:24:41.163Z",
+      "filterVersion": "1.0.0"
+    },
+    {
+      "safe": true,
+      "violations": [],
+      "processingTime": 0,
+      "timestamp": "2025-08-03T21:24:41.163Z",
+      "filterVersion": "1.0.0"
+    },
+    {
+      "safe": true,
+      "violations": [],
+      "processingTime": 0,
+      "timestamp": "2025-08-03T21:24:41.163Z",
+      "filterVersion": "1.0.0"
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "changeId": "guardian-content-filter-test",
+  "measurements": [
+    {
+      "metric": "content_filter_accuracy",
+      "baselineValue": 96.5,
+      "targetValue": 95,
+      "actualValue": 96.5,
+      "improvement": 0,
+      "passed": false,
+      "evidence": [
+        "content_filter_accuracy_guardian-content-filter-test.json"
+      ],
+      "timestamp": "2025-08-03T22:31:18.090Z"
+    }
+  ],
+  "statisticalSignificance": {
+    "pValue": 0.5,
+    "confidenceInterval": [
+      0,
+      0
+    ],
+    "sampleSize": 1000
+  },
+  "artifacts": [
+    "content_filter_accuracy_guardian-content-filter-test.json"
+  ],
+  "certificateHash": "44c77e9b659362f5b8b138389f7e1dc9d13190d117879147c709f3c985da4d61"
+}

@@ -1,0 +1,101 @@
+# Environment Variables
+.env
+.env.local
+.env.production
+.env.*.local
+
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Production
+dist/
+dist-ssr/
+*.local
+build/
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS Files
+Thumbs.db
+desktop.ini
+
+# Testing
+coverage/
+*.lcov
+.nyc_output
+
+# Logs
+logs/
+*.log
+
+# OQE Evidence (contains test data)
+oqe/evidence/
+oqe/oqe/evidence/
+agent-review-results.json
+
+# Temporary files
+*.tmp
+*.temp
+.cache
+
+# API Keys and Secrets
+*.key
+*.pem
+*.p12
+*.pfx
+secrets/
+config/secrets/
+
+# User-generated content
+uploads/
+user-data/
+
+# Build artifacts
+*.map
+.parcel-cache
+
+# TypeScript
+*.tsbuildinfo
+
+# Package manager files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Claude-specific files
+.claude/
+
+# Backup files
+*.backup
+*.bak
+*~
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Performance profiling
+*.cpuprofile
+*.heapprofile
+
+# Documentation build
+docs/_build/
+docs/.docusaurus/
+
+# CI/CD
+.github/workflows/secrets/

@@ -1,0 +1,17 @@
+{
+  "testId": "content-filter-accuracy-ai-safety-test",
+  "testCases": 2000,
+  "baseline": {
+    "accuracy": 96.5,
+    "truePositives": 950,
+    "falsePositives": 20,
+    "trueNegatives": 980,
+    "falseNegatives": 50
+  },
+  "actual": {
+    "accuracy": 96.5,
+    "improvement": 0
+  },
+  "timestamp": "2025-08-03T22:31:13.005Z",
+  "changeDescription": "Test Guardian safety standards for AI content validation"
+}
