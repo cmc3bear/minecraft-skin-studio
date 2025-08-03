@@ -22,3 +22,29 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Environment variables
+.env
+.env.local
+.env.production
+
+# Build files
+build/
+out/
+
+# Coverage
+coverage/
+*.lcov
+
+# OQE evidence files (can be regenerated)
+oqe/evidence/
+oqe/oqe/evidence/
+
+# Compiled JavaScript from TypeScript
+oqe/agents/agents/*.js
+oqe/agents/framework/*.js
+oqe/dist/
+
+# OS files
+Thumbs.db
+desktop.ini
