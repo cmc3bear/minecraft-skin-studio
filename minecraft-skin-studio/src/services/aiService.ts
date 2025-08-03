@@ -36,9 +36,9 @@ export class AIService {
 
   private constructor(config: AIServiceConfig) {
     this.config = {
-      maxResponseTime: 3000,
-      fallbackEnabled: true,
-      ...config
+      ...config,
+      maxResponseTime: config.maxResponseTime || 3000,
+      fallbackEnabled: config.fallbackEnabled !== undefined ? config.fallbackEnabled : true
     };
     this.initializeOfflineSupport();
     this.loadOfflineData();
@@ -360,7 +360,9 @@ export class AIService {
     // Keep cache size reasonable
     if (this.offlineCache.size > 100) {
       const firstKey = this.offlineCache.keys().next().value;
-      this.offlineCache.delete(firstKey);
+      if (firstKey) {
+        this.offlineCache.delete(firstKey);
+      }
     }
   }
 

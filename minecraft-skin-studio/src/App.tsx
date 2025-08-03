@@ -4,8 +4,8 @@ import './App.css';
 import HomePage from './pages/HomePage';
 import EditorPage from './pages/EditorPage';
 import GalleryPage from './pages/GalleryPage';
-import { SkinProject } from './types';
-import ParentalConsent, { ConsentData } from './components/ParentalConsent';
+import type { SkinProject } from './types';
+import ParentalConsent, { type ConsentData } from './components/ParentalConsent';
 import { consentManager } from './services/consentManager';
 
 function App() {
