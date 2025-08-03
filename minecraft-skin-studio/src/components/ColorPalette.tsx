@@ -50,16 +50,18 @@ export default function ColorPalette({ currentColor, onColorSelect }: ColorPalet
   };
 
   return (
-    <div className="color-palette">
-      <div className="current-color-display">
+    <div className="color-palette" role="region" aria-label="Color selection">
+      <div className="current-color-display" aria-live="polite" aria-atomic="true">
         <div 
           className="current-color-swatch" 
           style={{ backgroundColor: currentColor.hex }}
+          role="img"
+          aria-label={`Current color: ${currentColor.hex}`}
         />
-        <span className="current-color-hex">{currentColor.hex}</span>
+        <span className="current-color-hex" aria-hidden="true">{currentColor.hex}</span>
       </div>
       
-      <div className="color-grid">
+      <div className="color-grid" role="list" aria-label="Preset colors">
         {DEFAULT_COLORS.map((color, index) => (
           <button
             key={index}
@@ -67,6 +69,9 @@ export default function ColorPalette({ currentColor, onColorSelect }: ColorPalet
             style={{ backgroundColor: color.hex }}
             onClick={() => onColorSelect(color)}
             title={color.hex}
+            role="listitem"
+            aria-label={`Select color ${color.hex}`}
+            aria-current={color.hex === currentColor.hex ? 'true' : 'false'}
           />
         ))}
       </div>
@@ -78,6 +83,7 @@ export default function ColorPalette({ currentColor, onColorSelect }: ColorPalet
           type="color"
           value={currentColor.hex}
           onChange={handleCustomColorChange}
+          aria-label="Choose custom color"
         />
       </div>
     </div>

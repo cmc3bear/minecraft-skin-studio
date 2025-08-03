@@ -9,7 +9,7 @@ export const base64ToCanvas = (
 ): void => {
   const img = new Image();
   img.onload = () => {
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
     if (ctx) {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(img, 0, 0);

@@ -21,6 +21,7 @@ export default function AIAssistant({ onApplySuggestion, onApplyColorPalette }: 
     error, 
     responseTime,
     isPerforming,
+    isOffline,
     generateSuggestions, 
     generateColorPalette,
     clearSuggestions,
@@ -37,15 +38,27 @@ export default function AIAssistant({ onApplySuggestion, onApplyColorPalette }: 
   };
 
   return (
-    <div className="ai-assistant">
+    <div className="ai-assistant" role="region" aria-label="AI Creative Assistant">
       <div className="ai-header">
         <h3>🎨 AI Creative Assistant</h3>
         <p className="ai-subtitle">Describe your dream Minecraft skin!</p>
       </div>
 
+      {/* Offline indicator */}
+      {isOffline && (
+        <div className="offline-indicator" role="status" aria-live="polite">
+          📱 Offline Mode - Using cached suggestions
+        </div>
+      )}
+
       {/* Performance indicator for OQE monitoring */}
-      {responseTime && (
-        <div className={`performance-indicator ${isPerforming ? 'good' : 'warning'}`}>
+      {responseTime && !isOffline && (
+        <div 
+          className={`performance-indicator ${isPerforming ? 'good' : 'warning'}`}
+          role="status"
+          aria-live="polite"
+          aria-label={`AI response time: ${responseTime.toFixed(0)} milliseconds${isPerforming ? '' : ', slower than 3 second target'}`}
+        >
           ⚡ Response: {responseTime.toFixed(0)}ms 
           {isPerforming ? ' ✅' : ' ⚠️ (>3s target)'}
         </div>
@@ -61,6 +74,8 @@ export default function AIAssistant({ onApplySuggestion, onApplyColorPalette }: 
             className="prompt-input"
             disabled={isLoading}
             maxLength={200}
+            aria-label="Describe your skin idea"
+            aria-describedby="prompt-help"
           />
           <button 
             type="submit" 
@@ -71,7 +86,7 @@ export default function AIAssistant({ onApplySuggestion, onApplyColorPalette }: 
           </button>
         </div>
         
-        <div className="prompt-help">
+        <div className="prompt-help" id="prompt-help">
           <small>💡 Try: animals, superheroes, fantasy characters, or favorite colors!</small>
         </div>
       </form>
@@ -79,17 +94,17 @@ export default function AIAssistant({ onApplySuggestion, onApplyColorPalette }: 
       {/* Quick Color Palettes */}
       <div className="quick-palettes">
         <h4>🌈 Quick Color Themes</h4>
-        <div className="palette-buttons">
-          <button onClick={() => handleQuickPalette('minecraft')} disabled={isLoading}>
+        <div className="palette-buttons" role="group" aria-label="Quick color theme selection">
+          <button onClick={() => handleQuickPalette('minecraft')} disabled={isLoading} aria-label="Apply Minecraft color theme">
             🟫 Minecraft
           </button>
-          <button onClick={() => handleQuickPalette('fantasy')} disabled={isLoading}>
+          <button onClick={() => handleQuickPalette('fantasy')} disabled={isLoading} aria-label="Apply Fantasy color theme">
             🦄 Fantasy
           </button>
-          <button onClick={() => handleQuickPalette('space')} disabled={isLoading}>
+          <button onClick={() => handleQuickPalette('space')} disabled={isLoading} aria-label="Apply Space color theme">
             🚀 Space
           </button>
-          <button onClick={() => handleQuickPalette('ocean')} disabled={isLoading}>
+          <button onClick={() => handleQuickPalette('ocean')} disabled={isLoading} aria-label="Apply Ocean color theme">
             🌊 Ocean
           </button>
         </div>

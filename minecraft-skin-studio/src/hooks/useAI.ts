@@ -3,7 +3,7 @@
  * React hook for AI-powered skin creation assistance
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { aiService, SkinSuggestion, ColorPalette } from '../services/aiService';
 
 interface UseAIState {
@@ -12,6 +12,7 @@ interface UseAIState {
   isLoading: boolean;
   error: string | null;
   responseTime: number | null;
+  isOffline: boolean;
 }
 
 export function useAI() {
@@ -20,8 +21,30 @@ export function useAI() {
     colorPalette: null,
     isLoading: false,
     error: null,
-    responseTime: null
+    responseTime: null,
+    isOffline: !navigator.onLine
   });
+
+  // Monitor online/offline status
+  useEffect(() => {
+    const handleOnline = () => {
+      setState(prev => ({ ...prev, isOffline: false }));
+      console.log('✅ Back online - AI features restored');
+    };
+    
+    const handleOffline = () => {
+      setState(prev => ({ ...prev, isOffline: true }));
+      console.log('📱 Offline mode - using cached AI suggestions');
+    };
+    
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   const generateSuggestions = useCallback(async (prompt: string) => {
     if (!prompt.trim()) {
@@ -39,6 +62,11 @@ export function useAI() {
     const startTime = performance.now();
 
     try {
+      // Add offline warning
+      if (!navigator.onLine) {
+        console.log('📱 Generating suggestions offline...');
+      }
+      
       const suggestions = await aiService.generateSkinSuggestions(prompt, 3);
       const responseTime = performance.now() - startTime;
 

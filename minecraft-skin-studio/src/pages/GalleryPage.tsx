@@ -23,26 +23,26 @@ function GalleryPage({ projects, onDelete }: GalleryPageProps) {
   return (
     <div className="gallery-page">
       <header className="gallery-header">
-        <Link to="/" className="back-button">← Home</Link>
+        <Link to="/" className="back-button" aria-label="Go back to home page">← Home</Link>
         <h1>My Skins</h1>
-        <Link to="/editor" className="new-button">+ New Skin</Link>
+        <Link to="/editor" className="new-button" aria-label="Create new skin">+ New Skin</Link>
       </header>
       
-      <div className="gallery-content">
+      <div className="gallery-content" role="main">
         {projects.length === 0 ? (
-          <div className="empty-gallery">
+          <div className="empty-gallery" role="status" aria-live="polite">
             <p>You haven't created any skins yet!</p>
-            <Link to="/editor" className="create-first">Create your first skin</Link>
+            <Link to="/editor" className="create-first" aria-label="Create your first skin">Create your first skin</Link>
           </div>
         ) : (
-          <div className="skins-grid">
+          <div className="skins-grid" role="list" aria-label="Your saved skins">
             {projects.map(project => (
-              <div key={project.id} className="skin-card">
+              <div key={project.id} className="skin-card" role="listitem">
                 <div className="skin-preview">
                   {project.thumbnail ? (
-                    <img src={project.thumbnail} alt={project.name} />
+                    <img src={project.thumbnail} alt={`Preview of ${project.name}`} />
                   ) : (
-                    <div className="placeholder-thumbnail">🎨</div>
+                    <div className="placeholder-thumbnail" aria-label="No preview available">🎨</div>
                   )}
                 </div>
                 <h3>{project.name}</h3>
@@ -53,12 +53,14 @@ function GalleryPage({ projects, onDelete }: GalleryPageProps) {
                   <button 
                     onClick={() => handleEdit(project.id)}
                     className="edit-button"
+                    aria-label={`Edit ${project.name}`}
                   >
                     Edit
                   </button>
                   <button 
                     onClick={() => handleDelete(project.id)}
                     className="delete-button"
+                    aria-label={`Delete ${project.name}`}
                   >
                     Delete
                   </button>

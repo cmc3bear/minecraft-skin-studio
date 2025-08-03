@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { SkinProject, Tool, Color } from '../types';
-import PixelCanvas, { PixelCanvasRef } from '../components/PixelCanvas';
+import PixelCanvasOptimized, { PixelCanvasRef } from '../components/PixelCanvasOptimized';
 import ColorPalette from '../components/ColorPalette';
 import { createThumbnail, exportAsMinecraftSkin } from '../utils/canvasUtils';
+import { performanceMonitor } from '../services/performanceMonitor';
 import '../styles/EditorPage.css';
 
 interface EditorPageProps {
@@ -12,10 +13,10 @@ interface EditorPageProps {
 }
 
 const TOOLS: Tool[] = [
-  { id: 'pencil', name: 'Pencil', icon: '✏️', cursor: 'crosshair' },
-  { id: 'fill', name: 'Fill', icon: '🪣', cursor: 'crosshair' },
-  { id: 'eraser', name: 'Eraser', icon: '🧹', cursor: 'crosshair' },
-  { id: 'picker', name: 'Color Picker', icon: '👁️', cursor: 'crosshair' }
+  { id: 'pencil', name: 'Pencil (P)', icon: '✏️', cursor: 'crosshair' },
+  { id: 'fill', name: 'Fill (F)', icon: '🪣', cursor: 'crosshair' },
+  { id: 'eraser', name: 'Eraser (E)', icon: '🧹', cursor: 'crosshair' },
+  { id: 'picker', name: 'Color Picker (I)', icon: '👁️', cursor: 'crosshair' }
 ];
 
 function EditorPage({ projects, onSave }: EditorPageProps) {
@@ -26,7 +27,42 @@ function EditorPage({ projects, onSave }: EditorPageProps) {
   const [currentTool, setCurrentTool] = useState<Tool>(TOOLS[0]);
   const [currentColor, setCurrentColor] = useState<Color>({ hex: '#000000', rgb: { r: 0, g: 0, b: 0 } });
 
+  // Global keyboard shortcuts
   useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      // Tool shortcuts
+      if (!e.ctrlKey && !e.metaKey && !e.altKey) {
+        switch(e.key.toLowerCase()) {
+          case 'p':
+            setCurrentTool(TOOLS[0]); // Pencil
+            break;
+          case 'f':
+            setCurrentTool(TOOLS[1]); // Fill
+            break;
+          case 'e':
+            setCurrentTool(TOOLS[2]); // Eraser
+            break;
+          case 'i':
+            setCurrentTool(TOOLS[3]); // Picker
+            break;
+        }
+      }
+      
+      // Save shortcut
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        handleSave();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [currentProject]);
+
+  useEffect(() => {
+    // Start performance monitoring for S2 objective
+    performanceMonitor.start();
+    
     if (projectId) {
       const project = projects.find(p => p.id === projectId);
       if (project) {
@@ -44,6 +80,11 @@ function EditorPage({ projects, onSave }: EditorPageProps) {
       };
       setCurrentProject(newProject);
     }
+    
+    // Cleanup performance monitor on unmount
+    return () => {
+      performanceMonitor.stop();
+    };
   }, [projectId, projects]);
 
   const handleExport = () => {
@@ -102,7 +143,11 @@ function EditorPage({ projects, onSave }: EditorPageProps) {
   return (
     <div className="editor-page">
       <header className="editor-header">
-        <button onClick={() => navigate('/')} className="back-button">
+        <button 
+          onClick={() => navigate('/')} 
+          className="back-button"
+          aria-label="Go back to home page"
+        >
           ← Home
         </button>
         <input 
@@ -113,17 +158,26 @@ function EditorPage({ projects, onSave }: EditorPageProps) {
             name: e.target.value
           })}
           className="project-name"
+          aria-label="Project name"
         />
-        <button onClick={handleSave} className="save-button">
+        <button 
+          onClick={handleSave} 
+          className="save-button"
+          aria-label="Save project to gallery"
+        >
           Save
         </button>
-        <button onClick={handleExport} className="export-button">
+        <button 
+          onClick={handleExport} 
+          className="export-button"
+          aria-label="Export skin as PNG file"
+        >
           Export
         </button>
       </header>
       
       <div className="editor-content">
-        <aside className="toolbar">
+        <aside className="toolbar" role="toolbar" aria-label="Drawing tools">
           <h3>Tools</h3>
           <div className="tool-buttons">
             {TOOLS.map(tool => (
@@ -145,20 +199,20 @@ function EditorPage({ projects, onSave }: EditorPageProps) {
           />
         </aside>
         
-        <main className="canvas-area">
-          <PixelCanvas
+        <main className="canvas-area" role="main" aria-label="Skin editor canvas">
+          <PixelCanvasOptimized
             ref={canvasRef}
             currentTool={currentTool}
             currentColor={currentColor}
             initialData={currentProject.imageData}
+            showFPS={true} // Enable FPS monitoring for S2 objective
             onPixelChange={(x, y, color) => {
-              // Handle pixel changes
-              console.log(`Pixel at ${x},${y} changed to ${color.hex}`);
+              // Handle pixel changes for real-time updates
             }}
           />
         </main>
         
-        <aside className="preview-panel">
+        <aside className="preview-panel" role="complementary" aria-label="3D preview panel">
           <h3>3D Preview</h3>
           <div className="preview-container">
             {/* 3D preview will be implemented */}

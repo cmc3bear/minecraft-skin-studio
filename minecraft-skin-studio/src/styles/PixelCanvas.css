@@ -5,6 +5,7 @@
   border-radius: 8px;
   padding: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  position: relative;
 }
 
 .pixel-canvas {
@@ -17,4 +18,27 @@
 
 .pixel-canvas:active {
   cursor: crosshair;
+}
+
+/* FPS Counter for S2 Objective Monitoring */
+.fps-counter {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-family: monospace;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.fps-counter.fps-good {
+  background: rgba(76, 175, 80, 0.9);
+}
+
+.fps-counter.fps-warning {
+  background: rgba(255, 152, 0, 0.9);
 }

@@ -1,12 +1,40 @@
 import { Link } from 'react-router-dom';
+import { useState } from 'react';
 import '../styles/HomePage.css';
+import ParentalDashboard from '../components/ParentalDashboard';
+import PerformanceTester from '../components/PerformanceTester';
+import { consentManager } from '../services/consentManager';
 
 function HomePage() {
+  const [showParentalDashboard, setShowParentalDashboard] = useState(false);
+  const [showPerformanceTester, setShowPerformanceTester] = useState(false);
+  const consentStatus = consentManager.getConsentStatus();
+
   return (
     <div className="home-page">
       <header className="hero">
         <h1>Minecraft Skin Studio</h1>
         <p>Create amazing Minecraft skins with AI-powered tools!</p>
+        <div className="header-buttons">
+          {consentStatus.hasConsent && (
+            <button 
+              onClick={() => setShowParentalDashboard(true)}
+              className="parental-access-button"
+              title="Parental Dashboard"
+              aria-label="Open parental dashboard"
+            >
+              👨‍👩‍👧
+            </button>
+          )}
+          <button 
+            onClick={() => setShowPerformanceTester(true)}
+            className="performance-test-button"
+            title="Performance Benchmark"
+            aria-label="Run performance benchmark"
+          >
+            🎯
+          </button>
+        </div>
       </header>
       
       <div className="home-actions">
@@ -48,6 +76,18 @@ function HomePage() {
           </div>
         </div>
       </section>
+
+      {showParentalDashboard && (
+        <ParentalDashboard 
+          onClose={() => setShowParentalDashboard(false)}
+        />
+      )}
+      
+      {showPerformanceTester && (
+        <PerformanceTester 
+          onClose={() => setShowPerformanceTester(false)}
+        />
+      )}
     </div>
   );
 }

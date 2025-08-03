@@ -5,11 +5,20 @@ import HomePage from './pages/HomePage';
 import EditorPage from './pages/EditorPage';
 import GalleryPage from './pages/GalleryPage';
 import { SkinProject } from './types';
+import ParentalConsent, { ConsentData } from './components/ParentalConsent';
+import { consentManager } from './services/consentManager';
 
 function App() {
   const [projects, setProjects] = useState<SkinProject[]>([]);
+  const [hasConsent, setHasConsent] = useState(false);
+  const [consentChecked, setConsentChecked] = useState(false);
 
   useEffect(() => {
+    // Check for existing consent
+    const validConsent = consentManager.hasValidConsent();
+    setHasConsent(validConsent);
+    setConsentChecked(true);
+    
     // Load projects from localStorage on mount
     const savedProjects = localStorage.getItem('skinProjects');
     if (savedProjects) {
@@ -31,6 +40,33 @@ function App() {
     setProjects(updatedProjects);
     localStorage.setItem('skinProjects', JSON.stringify(updatedProjects));
   };
+
+  const handleConsentGranted = (consentData: ConsentData) => {
+    consentManager.storeConsent(consentData);
+    setHasConsent(true);
+    console.log('✅ COPPA Compliance: Parental consent granted');
+  };
+
+  const handleConsentDenied = () => {
+    console.log('❌ Parental consent denied - app access restricted');
+    // Show message that app cannot be used without consent
+    alert('Parental consent is required to use Minecraft Skin Studio. Please have a parent or guardian complete the consent process.');
+  };
+
+  // Show loading while checking consent
+  if (!consentChecked) {
+    return <div className="app-loading">Checking parental consent...</div>;
+  }
+
+  // Show consent form if no valid consent
+  if (!hasConsent) {
+    return (
+      <ParentalConsent 
+        onConsentGranted={handleConsentGranted}
+        onConsentDenied={handleConsentDenied}
+      />
+    );
+  }
 
   return (
     <div className="app">

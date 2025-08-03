@@ -38,7 +38,7 @@ const PixelCanvas = forwardRef<PixelCanvasRef, PixelCanvasProps>(({
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
     if (!ctx) return;
 
     // Initialize canvas
@@ -103,7 +103,7 @@ const PixelCanvas = forwardRef<PixelCanvasRef, PixelCanvasProps>(({
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
     if (!ctx) return;
 
     if (x < 0 || x >= width || y < 0 || y >= height) return;
@@ -124,7 +124,7 @@ const PixelCanvas = forwardRef<PixelCanvasRef, PixelCanvasProps>(({
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
     if (!ctx) return;
 
     if (x < 0 || x >= width || y < 0 || y >= height) return;
@@ -145,7 +145,7 @@ const PixelCanvas = forwardRef<PixelCanvasRef, PixelCanvasProps>(({
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
     if (!ctx) return;
 
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);

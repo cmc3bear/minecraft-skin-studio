@@ -30,6 +30,9 @@ export class AIService {
   private static instance: AIService;
   private config: AIServiceConfig;
   private responseTimeTarget = 3000; // S3 objective
+  private isOnline: boolean = navigator.onLine;
+  private offlineCache = new Map<string, any>();
+  private requestQueue: Array<() => Promise<any>> = [];
 
   private constructor(config: AIServiceConfig) {
     this.config = {
@@ -37,6 +40,8 @@ export class AIService {
       fallbackEnabled: true,
       ...config
     };
+    this.initializeOfflineSupport();
+    this.loadOfflineData();
   }
 
   static getInstance(config?: AIServiceConfig): AIService {
@@ -50,6 +55,80 @@ export class AIService {
   }
 
   /**
+   * Initialize offline support and monitor connectivity
+   */
+  private initializeOfflineSupport() {
+    window.addEventListener('online', () => {
+      this.isOnline = true;
+      console.log('✅ AI Service: Connection restored');
+      this.processQueuedRequests();
+    });
+    
+    window.addEventListener('offline', () => {
+      this.isOnline = false;
+      console.log('⚠️ AI Service: Offline mode - using cached suggestions');
+    });
+  }
+
+  /**
+   * Load offline data for fallback suggestions
+   */
+  private loadOfflineData() {
+    // Pre-cache safe, child-friendly suggestions
+    this.offlineCache.set('themes', [
+      { name: 'minecraft', keywords: ['steve', 'alex', 'creeper', 'enderman'] },
+      { name: 'animals', keywords: ['cat', 'dog', 'panda', 'fox', 'wolf'] },
+      { name: 'fantasy', keywords: ['wizard', 'knight', 'princess', 'dragon'] },
+      { name: 'space', keywords: ['astronaut', 'alien', 'robot', 'spaceship'] },
+      { name: 'nature', keywords: ['tree', 'flower', 'forest', 'ocean'] }
+    ]);
+    
+    this.offlineCache.set('fallbackSuggestions', [
+      {
+        description: 'Classic Minecraft Steve',
+        theme: 'minecraft',
+        colorPalette: ['#8B4513', '#0000FF', '#4B0082', '#FFE4B5'],
+        difficulty: 'easy'
+      },
+      {
+        description: 'Friendly Robot',
+        theme: 'space',
+        colorPalette: ['#C0C0C0', '#4169E1', '#FF0000', '#FFD700'],
+        difficulty: 'medium'
+      },
+      {
+        description: 'Rainbow Unicorn',
+        theme: 'fantasy',
+        colorPalette: ['#FF0000', '#FFA500', '#FFFF00', '#00FF00', '#0000FF', '#4B0082'],
+        difficulty: 'hard'
+      },
+      {
+        description: 'Cute Panda',
+        theme: 'animals',
+        colorPalette: ['#FFFFFF', '#000000', '#FFC0CB', '#90EE90'],
+        difficulty: 'easy'
+      }
+    ]);
+  }
+
+  /**
+   * Process queued requests when coming back online
+   */
+  private async processQueuedRequests() {
+    console.log(`Processing ${this.requestQueue.length} queued requests...`);
+    const queue = [...this.requestQueue];
+    this.requestQueue = [];
+    
+    for (const request of queue) {
+      try {
+        await request();
+      } catch (error) {
+        console.error('Failed to process queued request:', error);
+      }
+    }
+  }
+
+  /**
    * Generate skin suggestions based on user prompt
    * Performance Target: <3s (S3 objective)
    */
@@ -58,6 +137,12 @@ export class AIService {
     maxSuggestions: number = 3
   ): Promise<SkinSuggestion[]> {
     const startTime = performance.now();
+    
+    // Check if offline
+    if (!this.isOnline) {
+      console.log('📱 Offline mode: Using cached suggestions');
+      return this.getOfflineSuggestions(userPrompt, maxSuggestions);
+    }
     
     try {
       // First try ChatGPT for creative suggestions
@@ -70,10 +155,20 @@ export class AIService {
         console.warn(`⚠️ AI Response Time exceeded target: ${responseTime.toFixed(0)}ms > ${this.responseTimeTarget}ms`);
       }
       
+      // Cache successful responses
+      this.cacheResponse(userPrompt, suggestions);
+      
       return suggestions;
     } catch (error) {
       const responseTime = performance.now() - startTime;
       console.error('AI Service Error:', error);
+      
+      // Try to get cached response first
+      const cached = this.getCachedResponse(userPrompt);
+      if (cached) {
+        console.log('Using cached response');
+        return cached;
+      }
       
       if (this.config.fallbackEnabled) {
         console.log('Using fallback suggestions...');
@@ -217,6 +312,70 @@ export class AIService {
     }
     
     return fallbacks;
+  }
+
+  /**
+   * Get offline suggestions based on cached data
+   */
+  private getOfflineSuggestions(prompt: string, count: number): SkinSuggestion[] {
+    const fallbackSuggestions = this.offlineCache.get('fallbackSuggestions') || [];
+    const themes = this.offlineCache.get('themes') || [];
+    
+    // Find matching theme
+    const lowerPrompt = prompt.toLowerCase();
+    let matchedTheme = 'creative';
+    
+    for (const theme of themes) {
+      if (theme.keywords.some((keyword: string) => lowerPrompt.includes(keyword))) {
+        matchedTheme = theme.name;
+        break;
+      }
+    }
+    
+    // Filter suggestions by theme
+    const relevantSuggestions = fallbackSuggestions
+      .filter((s: any) => s.theme === matchedTheme || matchedTheme === 'creative')
+      .slice(0, count);
+    
+    // Convert to proper format
+    return relevantSuggestions.map((s: any, i: number) => ({
+      id: `offline-${Date.now()}-${i}`,
+      description: s.description,
+      theme: s.theme,
+      colorPalette: s.colorPalette,
+      confidence: 0.7 // Lower confidence for offline suggestions
+    }));
+  }
+
+  /**
+   * Cache successful responses for offline use
+   */
+  private cacheResponse(prompt: string, suggestions: SkinSuggestion[]) {
+    const cacheKey = `suggestions_${prompt.toLowerCase().slice(0, 50)}`;
+    this.offlineCache.set(cacheKey, {
+      suggestions,
+      timestamp: Date.now()
+    });
+    
+    // Keep cache size reasonable
+    if (this.offlineCache.size > 100) {
+      const firstKey = this.offlineCache.keys().next().value;
+      this.offlineCache.delete(firstKey);
+    }
+  }
+
+  /**
+   * Get cached response if available and recent
+   */
+  private getCachedResponse(prompt: string): SkinSuggestion[] | null {
+    const cacheKey = `suggestions_${prompt.toLowerCase().slice(0, 50)}`;
+    const cached = this.offlineCache.get(cacheKey);
+    
+    if (cached && Date.now() - cached.timestamp < 3600000) { // 1 hour cache
+      return cached.suggestions;
+    }
+    
+    return null;
   }
 
   private getFallbackPalette(theme: string): ColorPalette {
