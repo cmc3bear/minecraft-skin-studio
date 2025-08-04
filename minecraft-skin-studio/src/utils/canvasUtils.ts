@@ -11,8 +11,16 @@ export const base64ToCanvas = (
   img.onload = () => {
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
     if (ctx) {
+      // Clear the canvas first
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(img, 0, 0);
+      
+      // Disable image smoothing for pixel art
+      ctx.imageSmoothingEnabled = false;
+      
+      // Draw the image scaled to fill the entire canvas
+      // This scales a 64x64 skin to fill the 512x512 canvas (8x scaling)
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      
       if (callback) callback();
     }
   };

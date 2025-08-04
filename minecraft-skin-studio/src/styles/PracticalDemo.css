@@ -1,0 +1,338 @@
+/* Practical Tracking Demo Styles - No Religious Ceremony */
+
+.practical-demo {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: 'Inter', -apple-system, sans-serif;
+}
+
+.practical-demo h1 {
+  color: #2d3748;
+  text-align: center;
+  margin-bottom: 0.5rem;
+  font-size: 2.2rem;
+}
+
+.subtitle {
+  text-align: center;
+  color: #718096;
+  font-size: 1rem;
+  margin-bottom: 2rem;
+  font-weight: 500;
+}
+
+.demo-controls {
+  background: #f7fafc;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  border: 1px solid #e2e8f0;
+}
+
+.demo-controls h2 {
+  color: #4a5568;
+  margin-bottom: 1rem;
+  font-size: 1.3rem;
+}
+
+.control-buttons {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+}
+
+.control-buttons button {
+  padding: 12px 16px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+}
+
+.canvas-btn { background: #4299e1; color: white; }
+.ai-btn { background: #38b2ac; color: white; }
+.error-btn { background: #f56565; color: white; }
+.export-btn { background: #9f7aea; color: white; }
+.tool-btn { background: #ed8936; color: white; }
+.clear-btn { background: #718096; color: white; }
+.download-btn { background: #48bb78; color: white; }
+
+.control-buttons button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.results-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.compliance-panel,
+.insights-panel,
+.logs-panel {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.logs-panel {
+  grid-column: 1 / -1;
+}
+
+.compliance-panel h3,
+.insights-panel h3,
+.logs-panel h3 {
+  color: #2d3748;
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+  border-bottom: 2px solid #e2e8f0;
+  padding-bottom: 0.5rem;
+}
+
+.compliance-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.metric {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.metric-name {
+  font-size: 0.8rem;
+  color: #718096;
+  margin-bottom: 0.25rem;
+}
+
+.metric-value {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #2d3748;
+}
+
+.overall-score {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 1rem;
+  border-radius: 8px;
+  text-align: center;
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+.insight-section {
+  margin-bottom: 1rem;
+}
+
+.insight-section h4 {
+  color: #4a5568;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.insight-section ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.insight-section li {
+  background: #fed7d7;
+  color: #c53030;
+  padding: 0.5rem;
+  border-radius: 4px;
+  margin-bottom: 0.25rem;
+  font-size: 0.85rem;
+}
+
+.logs-list {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.log-item {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background: #fafafa;
+}
+
+.log-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.log-type {
+  background: #4a5568;
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.log-action {
+  font-weight: 600;
+  color: #2d3748;
+  font-size: 0.9rem;
+}
+
+.log-time {
+  margin-left: auto;
+  color: #718096;
+  font-size: 0.8rem;
+  font-family: monospace;
+}
+
+.log-compliance {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.edict-badge {
+  padding: 0.2rem 0.4rem;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.edict-badge.evidence { background: #bee3f8; color: #2b6cb0; }
+.edict-badge.commitment { background: #c6f6d5; color: #2f855a; }
+.edict-badge.transformation { background: #feebc8; color: #c05621; }
+.edict-badge.error { background: #fbb6ce; color: #b83280; }
+.edict-badge.truth { background: #d9f7be; color: #52c41a; }
+
+.log-evidence {
+  background: #2d3748;
+  color: #e2e8f0;
+  padding: 0.5rem;
+  border-radius: 4px;
+  font-family: 'Monaco', monospace;
+  font-size: 0.75rem;
+  white-space: pre-wrap;
+  overflow: hidden;
+}
+
+.no-logs {
+  text-align: center;
+  color: #a0aec0;
+  font-style: italic;
+  padding: 2rem;
+}
+
+.recommendations-panel,
+.technical-details {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid #e2e8f0;
+}
+
+.recommendations-panel h3,
+.technical-details h3 {
+  color: #2d3748;
+  margin-bottom: 1rem;
+  border-bottom: 2px solid #e2e8f0;
+  padding-bottom: 0.5rem;
+}
+
+.recommendations-panel ul,
+.technical-details ul {
+  list-style: none;
+  padding: 0;
+}
+
+.recommendations-panel li,
+.technical-details li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #f7fafc;
+  color: #4a5568;
+}
+
+.file-info {
+  background: #e6fffa;
+  border: 1px solid #38b2ac;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-top: 1rem;
+}
+
+.file-info h4 {
+  color: #2c7a7b;
+  margin-bottom: 0.5rem;
+}
+
+.file-info p {
+  margin: 0.25rem 0;
+  color: #2d3748;
+  font-size: 0.9rem;
+}
+
+.file-info code {
+  background: #2d3748;
+  color: #e2e8f0;
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  font-family: 'Monaco', monospace;
+}
+
+.technical-details li {
+  padding-left: 1rem;
+}
+
+/* Responsive design */
+@media (max-width: 1024px) {
+  .results-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .compliance-metrics {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .practical-demo {
+    padding: 15px;
+  }
+  
+  .control-buttons {
+    grid-template-columns: 1fr;
+  }
+  
+  .compliance-metrics {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .log-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .log-time {
+    margin-left: 0;
+  }
+}

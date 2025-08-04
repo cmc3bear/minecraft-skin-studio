@@ -1,0 +1,307 @@
+/* Skin Template Selector Styles */
+
+.skin-template-selector-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.skin-template-selector-modal {
+  background: #2a2a2a;
+  border-radius: 12px;
+  max-width: 800px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  border: 2px solid #444;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.selector-header {
+  padding: 20px 24px 16px;
+  border-bottom: 2px solid #444;
+  position: relative;
+}
+
+.selector-header h2 {
+  color: white;
+  margin: 0 0 8px 0;
+  font-size: 1.5rem;
+}
+
+.selector-header p {
+  color: #ccc;
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.close-button {
+  position: absolute;
+  top: 20px;
+  right: 24px;
+  background: none;
+  border: none;
+  color: #ccc;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.close-button:hover {
+  color: white;
+  background: #444;
+}
+
+.template-filters {
+  padding: 16px 24px;
+  border-bottom: 1px solid #444;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.template-filters label {
+  color: #ccc;
+  font-size: 0.9rem;
+}
+
+.theme-filter-select {
+  background: #333;
+  border: 2px solid #555;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.theme-filter-select:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.template-grid {
+  padding: 20px 24px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.template-card {
+  background: #333;
+  border: 2px solid #555;
+  border-radius: 8px;
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.template-card:hover {
+  border-color: #667eea;
+  background: #383838;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+}
+
+.template-card.selected {
+  border-color: #4CAF50;
+  background: #2e4a2e;
+}
+
+.template-card.selected::after {
+  content: '✓';
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  color: #4CAF50;
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+.template-preview {
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.color-palette-preview {
+  display: flex;
+  gap: 4px;
+}
+
+.color-swatch {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  border: 1px solid #666;
+}
+
+.arm-model-indicator {
+  font-size: 0.7rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.arm-model-indicator.steve {
+  background: #4169E1;
+  color: white;
+}
+
+.arm-model-indicator.alex {
+  background: #FF6347;
+  color: white;
+}
+
+.template-info {
+  color: white;
+}
+
+.template-name {
+  font-size: 1.1rem;
+  margin: 0 0 4px 0;
+  color: white;
+}
+
+.template-theme {
+  font-size: 0.8rem;
+  color: #667eea;
+  margin: 0 0 8px 0;
+  font-weight: 600;
+}
+
+.template-description {
+  font-size: 0.85rem;
+  color: #ccc;
+  margin: 0 0 12px 0;
+  line-height: 1.4;
+}
+
+.template-tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.tag {
+  background: #555;
+  color: #ddd;
+  font-size: 0.7rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-transform: lowercase;
+}
+
+.tag.more {
+  background: #666;
+  color: #aaa;
+}
+
+.preview-panel {
+  padding: 20px 24px;
+  border-top: 1px solid #444;
+  background: #262626;
+}
+
+.preview-panel h3 {
+  color: white;
+  margin: 0 0 12px 0;
+  font-size: 1.1rem;
+}
+
+.preview-details p {
+  color: #ccc;
+  margin: 4px 0;
+  font-size: 0.9rem;
+}
+
+.preview-details strong {
+  color: white;
+}
+
+.preview-description {
+  color: #ddd !important;
+  font-style: italic;
+  margin: 8px 0 12px 0 !important;
+}
+
+.preview-tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.preview-tag {
+  background: #667eea;
+  color: white;
+  font-size: 0.7rem;
+  padding: 3px 8px;
+  border-radius: 4px;
+  text-transform: lowercase;
+}
+
+.selector-footer {
+  padding: 16px 24px;
+  border-top: 1px solid #444;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.template-info-text {
+  color: #aaa;
+  font-size: 0.8rem;
+  margin: 0;
+}
+
+.cancel-button {
+  background: #666;
+  border: none;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.cancel-button:hover {
+  background: #777;
+}
+
+/* Responsive design */
+@media (max-width: 600px) {
+  .skin-template-selector-modal {
+    max-width: 95vw;
+    margin: 10px;
+  }
+  
+  .template-grid {
+    grid-template-columns: 1fr;
+    padding: 16px;
+  }
+  
+  .selector-header {
+    padding: 16px;
+  }
+  
+  .selector-footer {
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+  }
+}

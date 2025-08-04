@@ -3,7 +3,7 @@
  * Child-safe AI-powered skin creation assistant
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAI } from '../hooks/useAI';
 import './AIAssistant.css';
 
@@ -14,6 +14,9 @@ interface AIAssistantProps {
 
 export default function AIAssistant({ onApplySuggestion, onApplyColorPalette }: AIAssistantProps) {
   const [prompt, setPrompt] = useState('');
+  const [isListening, setIsListening] = useState(false);
+  const [speechSupported, setSpeechSupported] = useState(false);
+  
   const { 
     suggestions, 
     colorPalette, 
@@ -28,13 +31,80 @@ export default function AIAssistant({ onApplySuggestion, onApplyColorPalette }: 
     clearError 
   } = useAI();
 
+  useEffect(() => {
+    // Check if speech recognition is supported
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    setSpeechSupported(!!SpeechRecognition);
+  }, []);
+
+  const startListening = () => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert('Speech recognition is not supported in your browser');
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'en-US';
+    recognition.continuous = false;
+    recognition.interimResults = false;
+
+    recognition.onstart = () => {
+      setIsListening(true);
+      console.log('🎤 Listening for speech...');
+    };
+
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      setPrompt(transcript);
+      setIsListening(false);
+      console.log('📝 Speech recognized:', transcript);
+      // Auto-submit after speech recognition
+      generateSuggestions(transcript);
+    };
+
+    recognition.onerror = (event: any) => {
+      console.error('Speech recognition error:', event.error);
+      setIsListening(false);
+      alert(`Speech recognition error: ${event.error}`);
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+    };
+
+    recognition.start();
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    generateSuggestions(prompt);
+    if (prompt.trim()) {
+      console.log('🤖 Sending request to OpenAI:', prompt);
+      generateSuggestions(prompt);
+    }
   };
 
   const handleQuickPalette = (theme: string) => {
     generateColorPalette(theme);
+  };
+
+  const handleRandomize = () => {
+    const randomPrompts = [
+      'a brave knight in shining armor',
+      'a magical wizard with starry robes',
+      'a friendly robot with glowing eyes',
+      'a cool ninja in black outfit',
+      'a space explorer with jetpack',
+      'a nature fairy with leaf wings',
+      'a pirate captain with treasure map',
+      'a superhero with cape and mask',
+      'a cute animal character',
+      'a steampunk inventor with goggles'
+    ];
+    
+    const randomPrompt = randomPrompts[Math.floor(Math.random() * randomPrompts.length)];
+    setPrompt(randomPrompt);
+    generateSuggestions(randomPrompt);
   };
 
   return (
@@ -71,15 +141,27 @@ export default function AIAssistant({ onApplySuggestion, onApplyColorPalette }: 
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             placeholder="e.g., 'a friendly dragon with blue scales' or 'superhero with cape'"
-            className="prompt-input"
-            disabled={isLoading}
+            className={`prompt-input ${isListening ? 'listening' : ''}`}
+            disabled={isLoading || isListening}
             maxLength={200}
             aria-label="Describe your skin idea"
             aria-describedby="prompt-help"
           />
+          {speechSupported && (
+            <button
+              type="button"
+              onClick={startListening}
+              disabled={isLoading || isListening}
+              className={`mic-button ${isListening ? 'active' : ''}`}
+              aria-label={isListening ? 'Listening...' : 'Start voice input'}
+              title={isListening ? 'Listening...' : 'Click to speak'}
+            >
+              {isListening ? '🔴' : '🎤'}
+            </button>
+          )}
           <button 
             type="submit" 
-            disabled={isLoading || !prompt.trim()}
+            disabled={isLoading || !prompt.trim() || isListening}
             className="generate-btn"
           >
             {isLoading ? '🤔 Thinking...' : '✨ Create Ideas'}
@@ -90,6 +172,18 @@ export default function AIAssistant({ onApplySuggestion, onApplyColorPalette }: 
           <small>💡 Try: animals, superheroes, fantasy characters, or favorite colors!</small>
         </div>
       </form>
+
+      {/* Randomize Button */}
+      <div className="randomize-section">
+        <button 
+          onClick={handleRandomize}
+          disabled={isLoading}
+          className="randomize-btn"
+          aria-label="Generate random skin idea"
+        >
+          🎲 Random Idea
+        </button>
+      </div>
 
       {/* Quick Color Palettes */}
       <div className="quick-palettes">

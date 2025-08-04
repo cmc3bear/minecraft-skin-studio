@@ -1,6 +1,11 @@
 import { useRef, useEffect, useState, useCallback, forwardRef, useImperativeHandle } from 'react';
 import { Point, Tool, Color } from '../types';
 import { canvasToBase64, base64ToCanvas } from '../utils/canvasUtils';
+import { generateSteveSkin } from '../utils/defaultSkins';
+import { getRandomPreloadedSkin, generateEnhancedSteve, imageDataToDataURL } from '../utils/preloadedSkins';
+import CanvasContextRecoveryAgent from '../agents/canvasContextRecoveryAgent';
+import { practicalLogger } from '../services/practicalInteractionLogger';
+import UVMapOverlay from './UVMapOverlay';
 import '../styles/PixelCanvas.css';
 
 interface PixelCanvasProps {
@@ -12,6 +17,7 @@ interface PixelCanvasProps {
   onPixelChange?: (x: number, y: number, color: Color) => void;
   initialData?: string;
   showFPS?: boolean; // For development monitoring
+  showOverlay?: boolean; // UV map overlay toggle
 }
 
 export interface PixelCanvasRef {
@@ -32,13 +38,17 @@ const PixelCanvasOptimized = forwardRef<PixelCanvasRef, PixelCanvasProps>(({
   currentColor,
   onPixelChange,
   initialData,
-  showFPS = false
+  showFPS = false,
+  showOverlay = false
 }, ref) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const offscreenCanvasRef = useRef<OffscreenCanvas | null>(null);
   const animationFrameRef = useRef<number | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [currentFPS, setCurrentFPS] = useState(0);
+  
+  // Canvas Context Recovery Agent integration
+  const contextRecoveryAgentRef = useRef<CanvasContextRecoveryAgent | null>(null);
   
   // Performance monitoring
   const fpsCounterRef = useRef({
@@ -65,10 +75,38 @@ const PixelCanvasOptimized = forwardRef<PixelCanvasRef, PixelCanvasProps>(({
     // Initialize canvas
     canvas.width = width * pixelSize;
     canvas.height = height * pixelSize;
+    console.log('🔍 Canvas initialization:', {
+      width,
+      height,
+      pixelSize,
+      canvasWidth: canvas.width,
+      canvasHeight: canvas.height,
+      expectedSize: `${width}x${height} skin at ${pixelSize}px per pixel = ${canvas.width}x${canvas.height}px canvas`
+    });
 
     // Create offscreen canvas for double buffering
     if ('OffscreenCanvas' in window) {
       offscreenCanvasRef.current = new OffscreenCanvas(canvas.width, canvas.height);
+    }
+
+    // Initialize Canvas Context Recovery Agent
+    try {
+      contextRecoveryAgentRef.current = new CanvasContextRecoveryAgent(canvas);
+      console.log('[PixelCanvas] Canvas Context Recovery Agent initialized');
+      
+      // Log canvas initialization for tracking
+      practicalLogger.logInteraction('canvas', 'canvas_initialized', {
+        dimensions: { width: canvas.width, height: canvas.height },
+        pixelSize,
+        contextRecoveryEnabled: true
+      });
+    } catch (error) {
+      console.warn('[PixelCanvas] Failed to initialize Context Recovery Agent:', error);
+      practicalLogger.logError(error as Error, 'canvas_initialization', {
+        userImpact: 'Canvas may be vulnerable to context loss',
+        recoveryAction: 'Canvas will work but without automatic recovery',
+        fallbackProvided: true
+      });
     }
 
     // Set image smoothing off for crisp pixels
@@ -81,11 +119,84 @@ const PixelCanvasOptimized = forwardRef<PixelCanvasRef, PixelCanvasProps>(({
     // Draw grid
     drawGrid(ctx, width, height, pixelSize);
     
-    // Load initial data if provided
+    // Load initial data if provided, otherwise load enhanced preloaded skin
     if (initialData) {
       base64ToCanvas(initialData, canvas, () => {
         drawGrid(ctx, width, height, pixelSize);
       });
+      
+      practicalLogger.logInteraction('canvas', 'loaded_existing_skin', {
+        hasInitialData: true,
+        dataLength: initialData.length
+      });
+    } else {
+      // Load Steve skin for immediate editing experience
+      try {
+        console.log('🎨 Loading default Steve skin for edit-ready experience...');
+        // Use the working generateSteveSkin for now
+        const steveImageData = generateSteveSkin();
+        console.log('✅ Steve skin generated successfully:', steveImageData.width, 'x', steveImageData.height);
+        
+        // Convert to data URL properly
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = 64;
+        tempCanvas.height = 64;
+        const tempCtx = tempCanvas.getContext('2d');
+        if (!tempCtx) throw new Error('Could not create temp context');
+        
+        tempCtx.putImageData(steveImageData, 0, 0);
+        const steveDataURL = tempCanvas.toDataURL('image/png');
+        console.log('✅ Steve skin converted to data URL');
+        
+        base64ToCanvas(steveDataURL, canvas, () => {
+          drawGrid(ctx, width, height, pixelSize);
+          console.log('✅ Steve skin loaded onto canvas successfully');
+        });
+        
+        try {
+          practicalLogger.logInteraction('canvas', 'loaded_preloaded_skin', {
+            skinType: 'steve_default',
+            armModel: 'steve',
+            editReady: true,
+            uvMappingCompliant: true
+          });
+        } catch (logError) {
+          console.warn('Failed to log interaction:', logError);
+        }
+        
+        console.log('🎨 Canvas loaded with Steve skin for immediate editing - SUCCESS!');
+      } catch (error) {
+        console.warn('Failed to load Enhanced Steve skin:', error);
+        
+        // Fallback to original Steve if enhanced version fails
+        try {
+          const steveImageData = generateSteveSkin();
+          // Create canvas to convert ImageData to data URL
+          const tempCanvas = document.createElement('canvas');
+          tempCanvas.width = 64;
+          tempCanvas.height = 64;
+          const tempCtx = tempCanvas.getContext('2d');
+          if (tempCtx) {
+            tempCtx.putImageData(steveImageData, 0, 0);
+            const steveDataURL = tempCanvas.toDataURL('image/png');
+            base64ToCanvas(steveDataURL, canvas, () => {
+              drawGrid(ctx, width, height, pixelSize);
+            });
+          }
+          
+          practicalLogger.logInteraction('canvas', 'loaded_fallback_skin', {
+            skinType: 'original_steve',
+            fallbackReason: 'enhanced_steve_failed'
+          });
+        } catch (fallbackError) {
+          console.error('Failed to load any default skin:', fallbackError);
+          practicalLogger.logError(fallbackError as Error, 'skin_loading', {
+            userImpact: 'Canvas starts blank - user must create from scratch',
+            recoveryAction: 'White background provided',
+            fallbackProvided: true
+          });
+        }
+      }
     }
 
     // Start render loop
@@ -135,6 +246,7 @@ const PixelCanvasOptimized = forwardRef<PixelCanvasRef, PixelCanvasProps>(({
     if (!ctx) return;
 
     const buffer = pixelBufferRef.current;
+    const pixelCount = buffer.size;
     
     // Batch render all pending pixels
     buffer.forEach((color, key) => {
@@ -147,6 +259,15 @@ const PixelCanvasOptimized = forwardRef<PixelCanvasRef, PixelCanvasProps>(({
       ctx.strokeStyle = '#ddd';
       ctx.strokeRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize);
     });
+
+    // Log batch rendering for tracking (significant canvas operations)
+    if (pixelCount > 0) {
+      practicalLogger.logInteraction('canvas', 'batch_render', {
+        pixelsRendered: pixelCount,
+        renderingMethod: 'buffer_batch',
+        pixelsModified: pixelCount
+      });
+    }
 
     // Clear buffer after rendering
     buffer.clear();
@@ -188,8 +309,21 @@ const PixelCanvasOptimized = forwardRef<PixelCanvasRef, PixelCanvasProps>(({
   const drawPixel = (x: number, y: number, color: Color) => {
     if (x < 0 || x >= width || y < 0 || y >= height) return;
 
+    // Preserve canvas state before drawing (for context recovery)
+    if (contextRecoveryAgentRef.current) {
+      contextRecoveryAgentRef.current.preserveStateManually();
+    }
+
     // Add to pixel buffer for batched rendering
     pixelBufferRef.current.set(`${x},${y}`, color);
+
+    // Log drawing action for tracking
+    practicalLogger.logInteraction('canvas', 'pixel_drawn', {
+      coordinates: { x, y },
+      color: color.hex,
+      tool: currentTool.id,
+      pixelsModified: 1
+    });
 
     if (onPixelChange) {
       onPixelChange(x, y, color);
@@ -458,20 +592,34 @@ const PixelCanvasOptimized = forwardRef<PixelCanvasRef, PixelCanvasProps>(({
           </span>
         </div>
       )}
-      <canvas
-        ref={canvasRef}
-        className="pixel-canvas"
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseLeave}
-        onKeyDown={handleKeyDown}
-        onKeyUp={handleKeyUp}
-        role="img"
-        aria-label="Minecraft skin editor canvas. Use arrow keys to navigate, Space/Enter to draw, Shift+arrows to draw continuously."
-        tabIndex={0}
-        style={{ cursor: currentTool.cursor || 'crosshair' }}
-      />
+      <div style={{ position: 'relative', display: 'inline-block' }}>
+        <canvas
+          ref={canvasRef}
+          className="pixel-canvas"
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseLeave}
+          onKeyDown={handleKeyDown}
+          onKeyUp={handleKeyUp}
+          role="img"
+          aria-label="Minecraft skin editor canvas. Use arrow keys to navigate, Space/Enter to draw, Shift+arrows to draw continuously."
+          tabIndex={0}
+          style={{ cursor: currentTool.cursor || 'crosshair' }}
+        />
+        <UVMapOverlay 
+          isVisible={showOverlay} 
+          pixelSize={pixelSize}
+          onSectionHover={(section) => {
+            if (section) {
+              practicalLogger.logInteraction('canvas', 'uv_section_hover', {
+                section,
+                audioPlayed: true
+              });
+            }
+          }}
+        />
+      </div>
     </div>
   );
 });

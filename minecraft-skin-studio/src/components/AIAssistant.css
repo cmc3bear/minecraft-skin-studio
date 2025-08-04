@@ -93,6 +93,39 @@
   box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.5);
 }
 
+.prompt-input.listening {
+  background: rgba(255, 200, 200, 0.9);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* Microphone Button */
+.mic-button {
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  border-radius: 8px;
+  color: #333;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.mic-button:hover:not(:disabled) {
+  background: white;
+  transform: scale(1.05);
+}
+
+.mic-button.active {
+  background: #ff4444;
+  color: white;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.mic-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .generate-btn {
   padding: 12px 16px;
   background: linear-gradient(45deg, #FF6B6B, #FF8E53);

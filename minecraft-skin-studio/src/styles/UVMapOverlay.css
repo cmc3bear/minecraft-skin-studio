@@ -1,0 +1,79 @@
+.uv-map-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.uv-section {
+  position: absolute;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  pointer-events: auto;
+  cursor: help;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.uv-section:hover {
+  border: 2px solid white;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+  z-index: 11;
+}
+
+.uv-section.hovered {
+  background-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+.uv-label {
+  color: white;
+  font-size: 10px;
+  font-weight: bold;
+  text-shadow: 
+    1px 1px 2px rgba(0, 0, 0, 0.8),
+    -1px -1px 2px rgba(0, 0, 0, 0.8),
+    1px -1px 2px rgba(0, 0, 0, 0.8),
+    -1px 1px 2px rgba(0, 0, 0, 0.8);
+  text-align: center;
+  padding: 2px 4px;
+  background-color: rgba(0, 0, 0, 0.6);
+  border-radius: 3px;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+  user-select: none;
+}
+
+.uv-section:hover .uv-label {
+  opacity: 1;
+}
+
+/* Responsive label sizing */
+@media (max-width: 768px) {
+  .uv-label {
+    font-size: 8px;
+    padding: 1px 2px;
+  }
+}
+
+/* Hide labels on very small sections */
+.uv-section[style*="width: 32px"] .uv-label,
+.uv-section[style*="width: 24px"] .uv-label,
+.uv-section[style*="width: 16px"] .uv-label {
+  display: none;
+}
+
+/* Show labels on hover even for small sections */
+.uv-section:hover .uv-label {
+  display: block;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 12;
+  min-width: max-content;
+}

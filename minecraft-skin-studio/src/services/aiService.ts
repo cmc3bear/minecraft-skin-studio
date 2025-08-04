@@ -2,7 +2,12 @@
  * AI Service Integration
  * Implements ChatGPT and Claude API integration for creative assistance
  * Objectives: S3 - AI Response Time <3s
+ * 
+ * INTEGRATION: Now includes AI Documentation Agent for 100% interaction tracking
  */
+
+import OpenAI from 'openai';
+import AIDocumentationAgent from '../agents/aiDocumentationAgent';
 
 export interface SkinSuggestion {
   id: string;
@@ -33,6 +38,10 @@ export class AIService {
   private isOnline: boolean = navigator.onLine;
   private offlineCache = new Map<string, any>();
   private requestQueue: Array<() => Promise<any>> = [];
+  private openai: OpenAI | null = null;
+  
+  // AI Documentation Agent integration
+  private aiDocumentationAgent: AIDocumentationAgent;
 
   private constructor(config: AIServiceConfig) {
     this.config = {
@@ -40,8 +49,34 @@ export class AIService {
       maxResponseTime: config.maxResponseTime || 3000,
       fallbackEnabled: config.fallbackEnabled !== undefined ? config.fallbackEnabled : true
     };
+    
+    // Initialize AI Documentation Agent
+    this.aiDocumentationAgent = new AIDocumentationAgent();
+    
+    this.initializeOpenAI();
     this.initializeOfflineSupport();
     this.loadOfflineData();
+  }
+
+  /**
+   * Initialize OpenAI client with API key
+   */
+  private initializeOpenAI() {
+    const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
+    if (apiKey && apiKey !== 'your-openai-api-key-here') {
+      try {
+        this.openai = new OpenAI({
+          apiKey: apiKey,
+          dangerouslyAllowBrowser: true // Note: In production, use a backend proxy
+        });
+        console.log('✅ OpenAI client initialized');
+      } catch (error) {
+        console.warn('⚠️ Failed to initialize OpenAI client:', error);
+        this.openai = null;
+      }
+    } else {
+      console.warn('⚠️ OpenAI API key not found, using fallback suggestions');
+    }
   }
 
   static getInstance(config?: AIServiceConfig): AIService {
@@ -137,11 +172,33 @@ export class AIService {
     maxSuggestions: number = 3
   ): Promise<SkinSuggestion[]> {
     const startTime = performance.now();
+    let fallbackUsed = false;
+    let success = false;
+    let responseData: any = null;
     
     // Check if offline
     if (!this.isOnline) {
       console.log('📱 Offline mode: Using cached suggestions');
-      return this.getOfflineSuggestions(userPrompt, maxSuggestions);
+      const offlineResults = this.getOfflineSuggestions(userPrompt, maxSuggestions);
+      
+      // Document offline AI interaction
+      this.aiDocumentationAgent.documentAIInteraction(
+        userPrompt,
+        performance.now() - startTime,
+        true,
+        true,
+        {
+          type: 'fallback',
+          content: `Offline mode: ${offlineResults.length} suggestions generated`,
+          confidence: 0.7
+        },
+        {
+          userIntent: 'skin_generation',
+          expectedOutcome: 'creative_suggestions'
+        }
+      );
+      
+      return offlineResults;
     }
     
     try {
@@ -149,11 +206,31 @@ export class AIService {
       const suggestions = await this.generateWithChatGPT(userPrompt, maxSuggestions);
       
       const responseTime = performance.now() - startTime;
+      success = true;
+      responseData = suggestions;
+      
       console.log(`AI Response Time: ${responseTime.toFixed(0)}ms (Target: <${this.responseTimeTarget}ms)`);
       
       if (responseTime > this.responseTimeTarget) {
         console.warn(`⚠️ AI Response Time exceeded target: ${responseTime.toFixed(0)}ms > ${this.responseTimeTarget}ms`);
       }
+      
+      // Document successful AI interaction
+      this.aiDocumentationAgent.documentAIInteraction(
+        userPrompt,
+        responseTime,
+        true,
+        false,
+        {
+          type: 'success',
+          content: `Generated ${suggestions.length} skin suggestions`,
+          confidence: suggestions.length > 0 ? Math.min(1.0, suggestions[0].confidence) : 0.8
+        },
+        {
+          userIntent: 'skin_generation',
+          expectedOutcome: 'creative_suggestions'
+        }
+      );
       
       // Cache successful responses
       this.cacheResponse(userPrompt, suggestions);
@@ -167,13 +244,73 @@ export class AIService {
       const cached = this.getCachedResponse(userPrompt);
       if (cached) {
         console.log('Using cached response');
+        success = true;
+        fallbackUsed = true;
+        responseData = cached;
+        
+        // Document fallback AI interaction
+        this.aiDocumentationAgent.documentAIInteraction(
+          userPrompt,
+          responseTime,
+          true,
+          true,
+          {
+            type: 'fallback',
+            content: `Cached response: ${cached.length} suggestions`,
+            confidence: 0.8
+          },
+          {
+            userIntent: 'skin_generation',
+            expectedOutcome: 'cached_suggestions'
+          }
+        );
+        
         return cached;
       }
       
       if (this.config.fallbackEnabled) {
         console.log('Using fallback suggestions...');
-        return this.getFallbackSuggestions(userPrompt, maxSuggestions);
+        const fallbackResults = this.getFallbackSuggestions(userPrompt, maxSuggestions);
+        success = true;
+        fallbackUsed = true;
+        responseData = fallbackResults;
+        
+        // Document fallback AI interaction
+        this.aiDocumentationAgent.documentAIInteraction(
+          userPrompt,
+          responseTime,
+          true,
+          true,
+          {
+            type: 'fallback',
+            content: `Fallback suggestions: ${fallbackResults.length} generated`,
+            confidence: 0.6
+          },
+          {
+            userIntent: 'skin_generation',
+            expectedOutcome: 'fallback_suggestions'
+          }
+        );
+        
+        return fallbackResults;
       }
+      
+      // Document failed AI interaction
+      this.aiDocumentationAgent.documentAIInteraction(
+        userPrompt,
+        responseTime,
+        false,
+        false,
+        {
+          type: 'error',
+          content: `AI service failed: ${error}`,
+          confidence: 0
+        },
+        {
+          userIntent: 'skin_generation',
+          expectedOutcome: 'error_occurred'
+        }
+      );
       
       throw new Error(`AI service failed after ${responseTime.toFixed(0)}ms: ${error}`);
     }
@@ -185,6 +322,7 @@ export class AIService {
    */
   async generateColorPalette(theme: string, style: string): Promise<ColorPalette> {
     const startTime = performance.now();
+    const prompt = `${theme} ${style} color palette`;
     
     try {
       const palette = await this.generatePaletteWithAI(theme, style);
@@ -192,10 +330,90 @@ export class AIService {
       const responseTime = performance.now() - startTime;
       console.log(`Color Palette Generation: ${responseTime.toFixed(0)}ms`);
       
+      // Document successful color palette generation
+      this.aiDocumentationAgent.documentAIInteraction(
+        prompt,
+        responseTime,
+        true,
+        false,
+        {
+          type: 'success',
+          content: `Generated ${palette.colors.length} color palette for ${theme}`,
+          confidence: 0.9
+        },
+        {
+          userIntent: 'color_guidance',
+          expectedOutcome: 'color_palette'
+        }
+      );
+      
       return palette;
     } catch (error) {
+      const responseTime = performance.now() - startTime;
       console.error('Color palette generation failed:', error);
-      return this.getFallbackPalette(theme);
+      
+      const fallbackPalette = this.getFallbackPalette(theme);
+      
+      // Document fallback color palette generation
+      this.aiDocumentationAgent.documentAIInteraction(
+        prompt,
+        responseTime,
+        true,
+        true,
+        {
+          type: 'fallback',
+          content: `Fallback palette for ${theme}: ${fallbackPalette.colors.length} colors`,
+          confidence: 0.7
+        },
+        {
+          userIntent: 'color_guidance',
+          expectedOutcome: 'fallback_palette'
+        }
+      );
+      
+      return fallbackPalette;
+    }
+  }
+
+  /**
+   * Generate actual pixel data for a skin based on AI suggestions
+   * Uses proper Minecraft skin pipeline for specification compliance
+   */
+  async generateSkinPixelData(suggestion: SkinSuggestion): Promise<string> {
+    const startTime = performance.now();
+    
+    try {
+      // Use the proper Minecraft skin pipeline
+      const { skinPipeline } = await import('./skinPipeline');
+      
+      // Process through the official Minecraft skin pipeline
+      const skinDataURL = await skinPipeline.processSkinRequest({
+        prompt: suggestion.description,
+        style: 'pixel', // Always use pixel style for Minecraft
+        colors: suggestion.colorPalette
+      });
+      
+      const responseTime = performance.now() - startTime;
+      console.log(`✅ Minecraft Skin Pipeline: ${responseTime.toFixed(0)}ms`);
+      console.log(`Generated compliant skin for: "${suggestion.description}"`);
+      
+      return skinDataURL;
+    } catch (error) {
+      console.error('❌ Minecraft skin pipeline failed:', error);
+      
+      // Fallback to advanced skin generator
+      try {
+        const { advancedSkinGenerator } = await import('./advancedSkinGenerator');
+        const skinDataURL = await advancedSkinGenerator.generateSkinFromPrompt(suggestion.description);
+        console.log('⚠️ Used fallback advanced generator');
+        return skinDataURL;
+      } catch (fallbackError) {
+        console.error('❌ All skin generation methods failed:', fallbackError);
+        
+        // Ultimate fallback to Steve skin
+        const { generateSteveSkin, imageDataToDataURL } = await import('../utils/defaultSkins');
+        return imageDataToDataURL(generateSteveSkin());
+      }
     }
   }
 
@@ -261,40 +479,112 @@ export class AIService {
       throw new Error(`Unsafe content: ${safetyCheck.reason}`);
     }
     
-    // Simulate ChatGPT API call with controlled response time
-    return new Promise((resolve) => {
-      // Simulate API processing time (will be under 3s for S3 objective)
-      const simulatedDelay = Math.random() * 2000 + 500; // 500-2500ms
+    // If OpenAI is not available, use fallback
+    if (!this.openai) {
+      console.log('Using fallback suggestions (no OpenAI client)');
+      return this.getFallbackSuggestions(prompt, maxSuggestions);
+    }
+    
+    try {
+      const systemPrompt = `You are a creative assistant for a child-friendly Minecraft skin editor. 
+      Generate ${maxSuggestions} creative and safe skin ideas based on the user's prompt.
       
-      setTimeout(() => {
-        const suggestions: SkinSuggestion[] = [];
-        
-        for (let i = 0; i < maxSuggestions; i++) {
-          suggestions.push({
-            id: `suggestion-${Date.now()}-${i}`,
-            description: `Creative ${prompt} skin variation ${i + 1}`,
-            theme: this.extractTheme(prompt),
-            colorPalette: this.generateSampleColors(),
-            confidence: Math.random() * 0.3 + 0.7 // 70-100%
-          });
-        }
-        
-        resolve(suggestions);
-      }, simulatedDelay);
-    });
+      Respond with a JSON array containing objects with these fields:
+      - description: A fun, child-friendly description of the skin
+      - theme: One of: minecraft, fantasy, space, animal, nature, character
+      - colorPalette: Array of 3-6 hex color codes that fit the theme
+      - confidence: A number between 0.7 and 1.0
+      
+      Keep all suggestions appropriate for children and family-friendly.`;
+
+      const completion = await this.openai.chat.completions.create({
+        model: "gpt-3.5-turbo",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: `Create ${maxSuggestions} Minecraft skin ideas for: ${prompt}` }
+        ],
+        max_tokens: 1000,
+        temperature: 0.8
+      });
+
+      const response = completion.choices[0]?.message?.content;
+      if (!response) {
+        throw new Error('Empty response from OpenAI');
+      }
+
+      // Parse the JSON response
+      let aiSuggestions: any[];
+      try {
+        aiSuggestions = JSON.parse(response);
+      } catch (parseError) {
+        console.warn('Failed to parse OpenAI response, using fallback');
+        return this.getFallbackSuggestions(prompt, maxSuggestions);
+      }
+
+      // Convert to our format
+      const suggestions: SkinSuggestion[] = aiSuggestions.map((suggestion, index) => ({
+        id: `openai-${Date.now()}-${index}`,
+        description: suggestion.description || `AI-generated ${prompt} skin`,
+        theme: suggestion.theme || this.extractTheme(prompt),
+        colorPalette: suggestion.colorPalette || this.generateSampleColors(),
+        confidence: suggestion.confidence || 0.8
+      })).slice(0, maxSuggestions);
+
+      console.log(`✅ Generated ${suggestions.length} AI suggestions using OpenAI`);
+      return suggestions;
+
+    } catch (error) {
+      console.error('OpenAI API error:', error);
+      console.log('Falling back to predefined suggestions');
+      return this.getFallbackSuggestions(prompt, maxSuggestions);
+    }
   }
 
   private async generatePaletteWithAI(theme: string, style: string): Promise<ColorPalette> {
-    // Simulated AI palette generation
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({
-          name: `${theme} ${style} Palette`,
-          colors: this.generateSampleColors(),
-          theme
-        });
-      }, Math.random() * 800 + 200); // 200-1000ms for fast UI
-    });
+    // If OpenAI is not available, use fallback
+    if (!this.openai) {
+      return this.getFallbackPalette(theme);
+    }
+
+    try {
+      const systemPrompt = `You are a color expert for a child-friendly Minecraft skin editor.
+      Generate a color palette for the given theme and style.
+      
+      Respond with a JSON object with these fields:
+      - name: A creative name for the palette
+      - colors: Array of 4-6 hex color codes
+      - theme: The theme provided
+      
+      Make sure colors are vibrant and suitable for Minecraft skins.`;
+
+      const completion = await this.openai.chat.completions.create({
+        model: "gpt-3.5-turbo",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: `Create a ${style} color palette for theme: ${theme}` }
+        ],
+        max_tokens: 300,
+        temperature: 0.7
+      });
+
+      const response = completion.choices[0]?.message?.content;
+      if (!response) {
+        throw new Error('Empty response from OpenAI');
+      }
+
+      // Parse the JSON response
+      const aiPalette = JSON.parse(response);
+      
+      return {
+        name: aiPalette.name || `${theme} ${style} Palette`,
+        colors: aiPalette.colors || this.generateSampleColors(),
+        theme: aiPalette.theme || theme
+      };
+
+    } catch (error) {
+      console.error('OpenAI palette generation error:', error);
+      return this.getFallbackPalette(theme);
+    }
   }
 
   private getFallbackSuggestions(prompt: string, count: number): SkinSuggestion[] {
@@ -418,6 +708,130 @@ export class AIService {
   }
 
   /**
+   * Apply theme-based modifications to base skin ImageData
+   */
+  private applySkinTheme(baseImageData: ImageData, suggestion: SkinSuggestion): ImageData {
+    const canvas = document.createElement('canvas');
+    canvas.width = 64;
+    canvas.height = 64;
+    const ctx = canvas.getContext('2d');
+    
+    if (!ctx) {
+      return baseImageData;
+    }
+    
+    // Put the base image data on canvas
+    ctx.putImageData(baseImageData, 0, 0);
+    
+    // Apply theme-based color modifications
+    const theme = suggestion.theme.toLowerCase();
+    const colors = suggestion.colorPalette;
+    
+    switch (theme) {
+      case 'space':
+      case 'robot':
+        this.applySpaceTheme(ctx, colors);
+        break;
+      case 'fantasy':
+      case 'wizard':
+      case 'knight':
+        this.applyFantasyTheme(ctx, colors);
+        break;
+      case 'animal':
+      case 'cat':
+      case 'dog':
+      case 'panda':
+        this.applyAnimalTheme(ctx, colors);
+        break;
+      case 'nature':
+      case 'forest':
+        this.applyNatureTheme(ctx, colors);
+        break;
+      default:
+        this.applyDefaultTheme(ctx, colors);
+        break;
+    }
+    
+    return ctx.getImageData(0, 0, 64, 64);
+  }
+
+  private applySpaceTheme(ctx: CanvasRenderingContext2D, colors: string[]) {
+    // Change shirt to space suit (silver/metallic)
+    const spaceColor = colors[0] || '#C0C0C0';
+    const accentColor = colors[1] || '#4169E1';
+    
+    ctx.fillStyle = spaceColor;
+    // Body front
+    ctx.fillRect(20, 20, 8, 12);
+    // Arms
+    ctx.fillRect(44, 20, 4, 12);
+    ctx.fillRect(36, 52, 4, 12);
+    
+    // Add space helmet visor effect on head
+    ctx.fillStyle = accentColor;
+    ctx.fillRect(10, 12, 4, 2); // Visor reflection
+  }
+
+  private applyFantasyTheme(ctx: CanvasRenderingContext2D, colors: string[]) {
+    // Change colors to fantasy theme
+    const primaryColor = colors[0] || '#9370DB';
+    const secondaryColor = colors[1] || '#FFD700';
+    
+    ctx.fillStyle = primaryColor;
+    // Change shirt to robe
+    ctx.fillRect(20, 20, 8, 12);
+    
+    // Add golden accents
+    ctx.fillStyle = secondaryColor;
+    ctx.fillRect(20, 20, 8, 2); // Collar
+    ctx.fillRect(20, 30, 8, 2); // Belt
+  }
+
+  private applyAnimalTheme(ctx: CanvasRenderingContext2D, colors: string[]) {
+    // Apply animal-like colors
+    const furColor = colors[0] || '#8B4513';
+    const accentColor = colors[1] || '#FFFFFF';
+    
+    // Change head to fur color
+    ctx.fillStyle = furColor;
+    ctx.fillRect(8, 8, 8, 8);
+    
+    // Add white patches
+    ctx.fillStyle = accentColor;
+    ctx.fillRect(10, 10, 2, 2); // Eye patches
+    ctx.fillRect(14, 10, 2, 2);
+  }
+
+  private applyNatureTheme(ctx: CanvasRenderingContext2D, colors: string[]) {
+    // Apply nature colors (greens, browns)
+    const greenColor = colors[0] || '#228B22';
+    const brownColor = colors[1] || '#8B4513';
+    
+    ctx.fillStyle = greenColor;
+    // Change shirt to leafy green
+    ctx.fillRect(20, 20, 8, 12);
+    
+    // Change hair to brown
+    ctx.fillStyle = brownColor;
+    ctx.fillRect(8, 8, 8, 4);
+  }
+
+  private applyDefaultTheme(ctx: CanvasRenderingContext2D, colors: string[]) {
+    // Apply first color to shirt
+    if (colors.length > 0) {
+      ctx.fillStyle = colors[0];
+      ctx.fillRect(20, 20, 8, 12);
+    }
+    
+    // Apply second color to pants if available
+    if (colors.length > 1) {
+      ctx.fillStyle = colors[1];
+      ctx.fillRect(4, 20, 4, 6);
+      ctx.fillRect(20, 52, 4, 6);
+    }
+  }
+
+  /**
    * Get performance metrics for OQE monitoring
    */
   getPerformanceMetrics() {
@@ -427,6 +841,13 @@ export class AIService {
       safetyViolations: 0, // S1 objective
       uptimePercent: 99.9
     };
+  }
+
+  /**
+   * Get AI Documentation Agent for external access
+   */
+  getDocumentationAgent(): AIDocumentationAgent {
+    return this.aiDocumentationAgent;
   }
 }
 
