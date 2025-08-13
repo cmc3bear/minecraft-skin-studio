@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Log Extractor - Minecraft Skin Studio</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background: #1a1a1a;
+            color: #00ff00;
+            padding: 20px;
+            margin: 0;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #00ff00;
+            text-shadow: 0 0 10px #00ff00;
+            border-bottom: 2px solid #00ff00;
+            padding-bottom: 10px;
+        }
+        .section {
+            background: #0a0a0a;
+            border: 1px solid #00ff00;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .section h2 {
+            color: #00ffff;
+            margin-top: 0;
+        }
+        .log-entry {
+            background: #111;
+            padding: 10px;
+            margin: 5px 0;
+            border-left: 3px solid #00ff00;
+            font-size: 12px;
+        }
+        .error-log {
+            border-left-color: #ff0000;
+            color: #ff6666;
+        }
+        .ai-log {
+            border-left-color: #ffff00;
+            color: #ffff66;
+        }
+        .canvas-log {
+            border-left-color: #00ffff;
+            color: #66ffff;
+        }
+        .export-log {
+            border-left-color: #ff00ff;
+            color: #ff66ff;
+        }
+        .stat {
+            display: inline-block;
+            background: #222;
+            padding: 5px 10px;
+            margin: 5px;
+            border-radius: 3px;
+        }
+        .compliance-good {
+            color: #00ff00;
+        }
+        .compliance-warning {
+            color: #ffff00;
+        }
+        .compliance-bad {
+            color: #ff0000;
+        }
+        button {
+            background: #00ff00;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            font-family: inherit;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #00cc00;
+        }
+        pre {
+            background: #000;
+            padding: 10px;
+            overflow-x: auto;
+            border: 1px solid #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Minecraft Skin Studio - Log Analysis</h1>
+        
+        <div class="section">
+            <h2>📊 Summary Statistics</h2>
+            <div id="stats"></div>
+        </div>
+
+        <div class="section">
+            <h2>✅ Compliance Report (Five Sacred Edicts)</h2>
+            <div id="compliance"></div>
+        </div>
+
+        <div class="section">
+            <h2>💡 Actionable Insights</h2>
+            <div id="insights"></div>
+        </div>
+
+        <div class="section">
+            <h2>📜 Recent Logs</h2>
+            <div id="logs"></div>
+        </div>
+
+        <div class="section">
+            <h2>🔧 Actions</h2>
+            <button onclick="extractLogs()">Refresh Logs</button>
+            <button onclick="downloadLogs()">Download Full Log</button>
+            <button onclick="clearLogs()">Clear All Logs</button>
+            <button onclick="simulateInteractions()">Simulate Test Interactions</button>
+        </div>
+
+        <div class="section">
+            <h2>📄 Raw Data</h2>
+            <pre id="rawData"></pre>
+        </div>
+    </div>
+
+    <script>
+        function extractLogs() {
+            try {
+                // Get logs from localStorage
+                const logsJson = localStorage.getItem('practical_interaction_logs');
+                const logs = logsJson ? JSON.parse(logsJson) : [];
+                
+                // Display statistics
+                const stats = document.getElementById('stats');
+                const logTypes = {};
+                let errorCount = 0;
+                let successCount = 0;
+                
+                logs.forEach(log => {
+                    logTypes[log.type] = (logTypes[log.type] || 0) + 1;
+                    if (log.type === 'error') errorCount++;
+                    if (log.evidence && log.evidence.success) successCount++;
+                });
+                
+                stats.innerHTML = `
+                    <span class="stat">Total Logs: ${logs.length}</span>
+                    <span class="stat">Canvas: ${logTypes.canvas || 0}</span>
+                    <span class="stat">AI: ${logTypes.ai || 0}</span>
+                    <span class="stat">Tool: ${logTypes.tool || 0}</span>
+                    <span class="stat">Export: ${logTypes.export || 0}</span>
+                    <span class="stat" style="color: #ff6666">Errors: ${errorCount}</span>
+                    <span class="stat" style="color: #66ff66">Successes: ${successCount}</span>
+                `;
+                
+                // Calculate compliance
+                const compliance = calculateCompliance(logs);
+                const complianceDiv = document.getElementById('compliance');
+                complianceDiv.innerHTML = `
+                    <div class="stat ${getComplianceClass(compliance.evidenceCompliance)}">
+                        Evidence: ${compliance.evidenceCompliance}%
+                    </div>
+                    <div class="stat ${getComplianceClass(compliance.commitmentCompliance)}">
+                        Commitment: ${compliance.commitmentCompliance}%
+                    </div>
+                    <div class="stat ${getComplianceClass(compliance.transformationCompliance)}">
+                        Transformation: ${compliance.transformationCompliance}%
+                    </div>
+                    <div class="stat ${getComplianceClass(compliance.errorHandlingCompliance)}">
+                        Error Handling: ${compliance.errorHandlingCompliance}%
+                    </div>
+                    <div class="stat ${getComplianceClass(compliance.truthCompliance)}">
+                        Truth: ${compliance.truthCompliance}%
+                    </div>
+                    <div class="stat ${getComplianceClass(compliance.overallCompliance)}" style="font-weight: bold">
+                        Overall: ${compliance.overallCompliance}%
+                    </div>
+                    <div style="margin-top: 10px">
+                        ${compliance.recommendations.map(r => `<div>• ${r}</div>`).join('')}
+                    </div>
+                `;
+                
+                // Analyze insights
+                const insights = analyzeInsights(logs);
+                const insightsDiv = document.getElementById('insights');
+                insightsDiv.innerHTML = `
+                    <h3>Performance Issues:</h3>
+                    ${insights.performanceIssues.length ? insights.performanceIssues.map(i => `<div>⚠️ ${i}</div>`).join('') : '<div>✅ No performance issues detected</div>'}
+                    
+                    <h3>User Struggle Points:</h3>
+                    ${insights.userStrugglePoints.length ? insights.userStrugglePoints.map(i => `<div>🔧 ${i}</div>`).join('') : '<div>✅ No struggle points detected</div>'}
+                    
+                    <h3>Improvement Opportunities:</h3>
+                    ${insights.improvementOpportunities.length ? insights.improvementOpportunities.map(i => `<div>💡 ${i}</div>`).join('') : '<div>✅ System performing optimally</div>'}
+                `;
+                
+                // Display recent logs
+                const logsDiv = document.getElementById('logs');
+                const recentLogs = logs.slice(-20).reverse();
+                logsDiv.innerHTML = recentLogs.map(log => {
+                    const timestamp = new Date(log.timestamp).toLocaleString();
+                    const logClass = `log-entry ${log.type}-log`;
+                    return `
+                        <div class="${logClass}">
+                            <strong>[${timestamp}] ${log.type.toUpperCase()}: ${log.action}</strong><br>
+                            Evidence: ${JSON.stringify(log.evidence, null, 2)}<br>
+                            Compliance: C:${log.committed ? '✓' : '✗'} D:${log.documented ? '✓' : '✗'} E:${log.errorHandled ? '✓' : '✗'} V:${log.verified ? '✓' : '✗'}
+                        </div>
+                    `;
+                }).join('');
+                
+                // Display raw data
+                document.getElementById('rawData').textContent = JSON.stringify(logs, null, 2);
+                
+                console.log('✅ Logs extracted successfully');
+                
+            } catch (error) {
+                console.error('Failed to extract logs:', error);
+                alert('Failed to extract logs: ' + error.message);
+            }
+        }
+        
+        function calculateCompliance(logs) {
+            if (logs.length === 0) {
+                return {
+                    evidenceCompliance: 0,
+                    commitmentCompliance: 0,
+                    transformationCompliance: 0,
+                    errorHandlingCompliance: 0,
+                    truthCompliance: 0,
+                    overallCompliance: 0,
+                    recommendations: ['No interactions logged yet']
+                };
+            }
+            
+            const totalLogs = logs.length;
+            const evidenceCompliance = Math.round((logs.filter(log => log.evidence && Object.keys(log.evidence).length > 0).length / totalLogs) * 100);
+            const commitmentCompliance = Math.round((logs.filter(log => log.committed).length / totalLogs) * 100);
+            const transformationCompliance = Math.round((logs.filter(log => log.documented).length / totalLogs) * 100);
+            const errorHandlingCompliance = Math.round((logs.filter(log => log.errorHandled).length / totalLogs) * 100);
+            const truthCompliance = Math.round((logs.filter(log => log.verified).length / totalLogs) * 100);
+            
+            const overallCompliance = Math.round((evidenceCompliance + commitmentCompliance + transformationCompliance + errorHandlingCompliance + truthCompliance) / 5);
+            
+            const recommendations = [];
+            if (evidenceCompliance < 80) recommendations.push('Improve evidence collection');
+            if (commitmentCompliance < 80) recommendations.push('Increase commitment rate');
+            if (transformationCompliance < 80) recommendations.push('Better documentation needed');
+            if (errorHandlingCompliance < 90) recommendations.push('Improve error handling');
+            if (truthCompliance < 90) recommendations.push('Verify claims with evidence');
+            
+            if (recommendations.length === 0) {
+                recommendations.push('Excellent compliance with all Five Sacred Edicts');
+            }
+            
+            return {
+                evidenceCompliance,
+                commitmentCompliance,
+                transformationCompliance,
+                errorHandlingCompliance,
+                truthCompliance,
+                overallCompliance,
+                recommendations
+            };
+        }
+        
+        function analyzeInsights(logs) {
+            const canvasLogs = logs.filter(log => log.type === 'canvas');
+            const errorLogs = logs.filter(log => log.type === 'error');
+            const aiLogs = logs.filter(log => log.type === 'ai');
+            
+            const performanceIssues = [];
+            const userStrugglePoints = [];
+            const improvementOpportunities = [];
+            
+            // Check canvas performance
+            const lowFpsLogs = canvasLogs.filter(log => log.evidence && log.evidence.fps && log.evidence.fps < 60);
+            if (lowFpsLogs.length > canvasLogs.length * 0.2) {
+                performanceIssues.push('Canvas FPS drops below 60fps in 20%+ of interactions');
+            }
+            
+            // Check error patterns
+            const errorTypes = {};
+            errorLogs.forEach(log => {
+                const errorType = log.action.split('_')[1] || 'unknown';
+                errorTypes[errorType] = (errorTypes[errorType] || 0) + 1;
+            });
+            
+            Object.entries(errorTypes).forEach(([type, count]) => {
+                if (count > 2) {
+                    userStrugglePoints.push(`Frequent ${type} errors (${count} occurrences)`);
+                }
+            });
+            
+            // Check AI effectiveness
+            const aiFailures = aiLogs.filter(log => log.evidence && log.evidence.success === false);
+            if (aiFailures.length > aiLogs.length * 0.1) {
+                improvementOpportunities.push('AI failure rate above 10% - improve fallback handling');
+            }
+            
+            return {
+                performanceIssues,
+                userStrugglePoints,
+                improvementOpportunities
+            };
+        }
+        
+        function getComplianceClass(percentage) {
+            if (percentage >= 80) return 'compliance-good';
+            if (percentage >= 60) return 'compliance-warning';
+            return 'compliance-bad';
+        }
+        
+        function downloadLogs() {
+            const logs = localStorage.getItem('practical_interaction_logs');
+            if (!logs) {
+                alert('No logs to download');
+                return;
+            }
+            
+            const data = {
+                timestamp: new Date().toISOString(),
+                logs: JSON.parse(logs),
+                compliance: calculateCompliance(JSON.parse(logs)),
+                insights: analyzeInsights(JSON.parse(logs))
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `minecraft-skin-studio-logs-${Date.now()}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+        
+        function clearLogs() {
+            if (confirm('Are you sure you want to clear all logs?')) {
+                localStorage.removeItem('practical_interaction_logs');
+                extractLogs();
+                alert('Logs cleared');
+            }
+        }
+        
+        function simulateInteractions() {
+            // Simulate some test interactions
+            const testLogs = [
+                {
+                    id: `test_${Date.now()}_1`,
+                    timestamp: Date.now(),
+                    type: 'canvas',
+                    action: 'test_drawing',
+                    evidence: { fps: 65, pixelsModified: 100, tool: 'pencil' },
+                    committed: true,
+                    documented: true,
+                    errorHandled: true,
+                    verified: true
+                },
+                {
+                    id: `test_${Date.now()}_2`,
+                    timestamp: Date.now() + 1000,
+                    type: 'ai',
+                    action: 'test_generation',
+                    evidence: { prompt: 'test prompt', responseTime: 1500, success: true },
+                    committed: true,
+                    documented: true,
+                    errorHandled: true,
+                    verified: true
+                },
+                {
+                    id: `test_${Date.now()}_3`,
+                    timestamp: Date.now() + 2000,
+                    type: 'export',
+                    action: 'test_export',
+                    evidence: { format: 'png', success: true, fileSize: 2048 },
+                    committed: true,
+                    documented: true,
+                    errorHandled: true,
+                    verified: true
+                }
+            ];
+            
+            const existingLogs = localStorage.getItem('practical_interaction_logs');
+            const logs = existingLogs ? JSON.parse(existingLogs) : [];
+            logs.push(...testLogs);
+            localStorage.setItem('practical_interaction_logs', JSON.stringify(logs));
+            
+            extractLogs();
+            alert('Test interactions added');
+        }
+        
+        // Auto-load on page load
+        window.onload = extractLogs;
+    </script>
+</body>
+</html>

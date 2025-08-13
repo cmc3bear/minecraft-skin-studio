@@ -121,6 +121,9 @@ class PracticalInteractionLogger {
     fileSize?: number;
     duration?: number;
     error?: string;
+    components?: string[];
+    finalMetrics?: any;
+    [key: string]: any; // Allow additional properties
   }): string {
     return this.logInteraction('export', action, evidence, {
       committed: evidence.success ?? false,

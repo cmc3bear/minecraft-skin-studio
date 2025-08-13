@@ -87,6 +87,14 @@ const SKIN_PALETTES = {
     bandana: '#FF0000',
     eyepatch: '#000000',
     boots: '#654321'
+  },
+  KNIGHT: {
+    armor: '#C0C0C0',
+    armorDark: '#808080',
+    chainmail: '#A9A9A9',
+    skin: '#F9DCC4',
+    skinShadow: '#E8B59B',
+    eyes: '#4169E1'
   }
 };
 

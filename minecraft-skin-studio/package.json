@@ -13,6 +13,7 @@
     "@types/file-saver": "^2.0.7",
     "@types/three": "^0.178.1",
     "axios": "^1.11.0",
+    "evidence-based-development-boilerplate": "file:../../project-boilerplate",
     "file-saver": "^2.0.5",
     "localforage": "^1.10.0",
     "openai": "^5.11.0",

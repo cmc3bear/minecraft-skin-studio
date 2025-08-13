@@ -5,6 +5,7 @@ import { generateSteveSkin } from '../utils/defaultSkins';
 import { getRandomPreloadedSkin, generateEnhancedSteve, imageDataToDataURL } from '../utils/preloadedSkins';
 import CanvasContextRecoveryAgent from '../agents/canvasContextRecoveryAgent';
 import { practicalLogger } from '../services/practicalInteractionLogger';
+import { DirtyRectangleManager } from '../utils/DirtyRectangleManager';
 import UVMapOverlay from './UVMapOverlay';
 import '../styles/PixelCanvas.css';
 
@@ -50,6 +51,9 @@ const PixelCanvasOptimized = forwardRef<PixelCanvasRef, PixelCanvasProps>(({
   // Canvas Context Recovery Agent integration
   const contextRecoveryAgentRef = useRef<CanvasContextRecoveryAgent | null>(null);
   
+  // Dirty Rectangle Manager for optimized rendering
+  const dirtyRectManagerRef = useRef<DirtyRectangleManager | null>(null);
+  
   // Performance monitoring
   const fpsCounterRef = useRef({
     frames: 0,
@@ -87,6 +91,20 @@ const PixelCanvasOptimized = forwardRef<PixelCanvasRef, PixelCanvasProps>(({
     // Create offscreen canvas for double buffering
     if ('OffscreenCanvas' in window) {
       offscreenCanvasRef.current = new OffscreenCanvas(canvas.width, canvas.height);
+    }
+
+    // Initialize Dirty Rectangle Manager for optimized rendering
+    try {
+      dirtyRectManagerRef.current = new DirtyRectangleManager(canvas);
+      dirtyRectManagerRef.current.setRenderCallback((regions) => {
+        // Render only the dirty regions
+        regions.forEach(region => {
+          renderRegion(ctx, region);
+        });
+      });
+      console.log('[PixelCanvas] Dirty Rectangle Manager initialized for 60+ FPS optimization');
+    } catch (error) {
+      console.warn('[PixelCanvas] Failed to initialize Dirty Rectangle Manager:', error);
     }
 
     // Initialize Canvas Context Recovery Agent
@@ -206,29 +224,45 @@ const PixelCanvasOptimized = forwardRef<PixelCanvasRef, PixelCanvasProps>(({
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
       }
+      if (dirtyRectManagerRef.current) {
+        dirtyRectManagerRef.current.destroy();
+        dirtyRectManagerRef.current = null;
+      }
     };
   }, [width, height, pixelSize, initialData]);
 
   const startRenderLoop = useCallback(() => {
     const render = (currentTime: number) => {
-      // FPS calculation
-      const fpsCounter = fpsCounterRef.current;
-      fpsCounter.frames++;
-      
-      if (currentTime - fpsCounter.lastTime >= 1000) {
-        fpsCounter.fps = fpsCounter.frames;
-        fpsCounter.frames = 0;
-        fpsCounter.lastTime = currentTime;
-        setCurrentFPS(fpsCounter.fps);
+      // Get FPS from DirtyRectangleManager if available
+      if (dirtyRectManagerRef.current) {
+        const fps = dirtyRectManagerRef.current.getFPS();
+        setCurrentFPS(fps);
         
         // Log performance for OQE monitoring
-        if (fpsCounter.fps < TARGET_FPS) {
-          console.warn(`⚠️ FPS below target: ${fpsCounter.fps} < ${TARGET_FPS}`);
+        if (fps < TARGET_FPS && fps > 0) {
+          console.warn(`⚠️ FPS below target: ${fps} < ${TARGET_FPS}`);
+        }
+      } else {
+        // Fallback FPS calculation
+        const fpsCounter = fpsCounterRef.current;
+        fpsCounter.frames++;
+        
+        if (currentTime - fpsCounter.lastTime >= 1000) {
+          fpsCounter.fps = fpsCounter.frames;
+          fpsCounter.frames = 0;
+          fpsCounter.lastTime = currentTime;
+          setCurrentFPS(fpsCounter.fps);
+          
+          // Log performance for OQE monitoring
+          if (fpsCounter.fps < TARGET_FPS) {
+            console.warn(`⚠️ FPS below target: ${fpsCounter.fps} < ${TARGET_FPS}`);
+          }
         }
       }
 
-      // Process pixel buffer
-      if (pixelBufferRef.current.size > 0) {
+      // DirtyRectangleManager handles its own rendering via callback
+      // We only need to process any remaining buffer items not yet marked dirty
+      if (pixelBufferRef.current.size > 0 && !dirtyRectManagerRef.current) {
         renderPixelBuffer();
       }
 
@@ -272,6 +306,33 @@ const PixelCanvasOptimized = forwardRef<PixelCanvasRef, PixelCanvasProps>(({
     // Clear buffer after rendering
     buffer.clear();
   }, [pixelSize]);
+
+  const renderRegion = (ctx: CanvasRenderingContext2D, region: { x: number; y: number; width: number; height: number }) => {
+    // Render pixels in the dirty region from the pixel buffer
+    const buffer = pixelBufferRef.current;
+    
+    // Convert canvas coordinates to pixel coordinates
+    const startX = Math.floor(region.x / pixelSize);
+    const startY = Math.floor(region.y / pixelSize);
+    const endX = Math.ceil((region.x + region.width) / pixelSize);
+    const endY = Math.ceil((region.y + region.height) / pixelSize);
+    
+    for (let y = startY; y < endY; y++) {
+      for (let x = startX; x < endX; x++) {
+        const key = `${x},${y}`;
+        const color = buffer.get(key);
+        
+        if (color) {
+          ctx.fillStyle = color.hex;
+          ctx.fillRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize);
+          
+          // Redraw grid cell
+          ctx.strokeStyle = '#ddd';
+          ctx.strokeRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize);
+        }
+      }
+    }
+  };
 
   const drawGrid = (ctx: CanvasRenderingContext2D, w: number, h: number, size: number) => {
     ctx.strokeStyle = '#ddd';
@@ -317,6 +378,16 @@ const PixelCanvasOptimized = forwardRef<PixelCanvasRef, PixelCanvasProps>(({
     // Add to pixel buffer for batched rendering
     pixelBufferRef.current.set(`${x},${y}`, color);
 
+    // Mark the region as dirty for optimized rendering
+    if (dirtyRectManagerRef.current) {
+      dirtyRectManagerRef.current.markDirty(
+        x * pixelSize, 
+        y * pixelSize, 
+        pixelSize, 
+        pixelSize
+      );
+    }
+
     // Log drawing action for tracking
     practicalLogger.logInteraction('canvas', 'pixel_drawn', {
       coordinates: { x, y },
@@ -335,6 +406,16 @@ const PixelCanvasOptimized = forwardRef<PixelCanvasRef, PixelCanvasProps>(({
 
     const whiteColor = { hex: '#ffffff', rgb: { r: 255, g: 255, b: 255 } };
     pixelBufferRef.current.set(`${x},${y}`, whiteColor);
+
+    // Mark the region as dirty for optimized rendering
+    if (dirtyRectManagerRef.current) {
+      dirtyRectManagerRef.current.markDirty(
+        x * pixelSize, 
+        y * pixelSize, 
+        pixelSize, 
+        pixelSize
+      );
+    }
 
     if (onPixelChange) {
       onPixelChange(x, y, whiteColor);
@@ -555,7 +636,22 @@ const PixelCanvasOptimized = forwardRef<PixelCanvasRef, PixelCanvasProps>(({
     getImageData: () => {
       const canvas = canvasRef.current;
       if (!canvas) return '';
-      return canvasToBase64(canvas);
+      
+      // Create a temporary canvas at 64x64 to scale down from 512x512
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.width = 64;
+      tempCanvas.height = 64;
+      const tempCtx = tempCanvas.getContext('2d');
+      
+      if (!tempCtx) return '';
+      
+      // Draw the 512x512 canvas scaled down to 64x64
+      tempCtx.imageSmoothingEnabled = false; // Keep pixelated look
+      tempCtx.drawImage(canvas, 0, 0, 512, 512, 0, 0, 64, 64);
+      
+      const base64 = tempCanvas.toDataURL('image/png');
+      console.log('[PixelCanvas] getImageData: Scaled 512x512 to 64x64 for 3D model');
+      return base64;
     },
     setImageData: (data: string) => {
       const canvas = canvasRef.current;

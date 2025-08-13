@@ -403,8 +403,9 @@ export class AIService {
       
       // Fallback to advanced skin generator
       try {
-        const { advancedSkinGenerator } = await import('./advancedSkinGenerator');
-        const skinDataURL = await advancedSkinGenerator.generateSkinFromPrompt(suggestion.description);
+        const { AdvancedSkinGenerator } = await import('./advancedSkinGenerator');
+        const generator = AdvancedSkinGenerator.getInstance();
+        const skinDataURL = await generator.generateSkinFromPrompt(suggestion.description);
         console.log('⚠️ Used fallback advanced generator');
         return skinDataURL;
       } catch (fallbackError) {

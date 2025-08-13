@@ -111,10 +111,26 @@ export default function MinecraftCharacter3D({
 
   // Update skin texture when skinDataURL changes
   useEffect(() => {
-    if (skinDataURL && characterRef.current) {
+    console.log('🔄 Skin data URL changed:', {
+      hasDataURL: !!skinDataURL,
+      hasCharacter: !!characterRef.current,
+      isLoaded,
+      dataLength: skinDataURL?.length || 0,
+      dataPreview: skinDataURL?.substring(0, 50) + '...'
+    });
+    
+    if (skinDataURL && characterRef.current && isLoaded) {
+      console.log('🔄 All conditions met, updating character skin...');
       updateCharacterSkin(skinDataURL);
+    } else {
+      console.log('⏳ Waiting for components to be ready...', {
+        hasDataURL: !!skinDataURL,
+        hasCharacter: !!characterRef.current,
+        isLoaded,
+        missingComponent: !skinDataURL ? 'skinDataURL' : !characterRef.current ? 'character' : !isLoaded ? 'loaded' : 'unknown'
+      });
     }
-  }, [skinDataURL]);
+  }, [skinDataURL, isLoaded]);
 
   const createMinecraftCharacter = (scene: THREE.Scene) => {
     const character = new THREE.Group();
@@ -220,7 +236,17 @@ export default function MinecraftCharacter3D({
       return;
     }
 
+    if (!dataURL || !dataURL.startsWith('data:image')) {
+      console.error('❌ Invalid data URL format:', dataURL?.substring(0, 100));
+      return;
+    }
+
     console.log('🎮 Updating 3D character skin with data URL:', dataURL?.substring(0, 50) + '...');
+    console.log('📊 Data URL format check:', {
+      isDataURL: dataURL.startsWith('data:'),
+      isImage: dataURL.startsWith('data:image'),
+      length: dataURL.length
+    });
     
     textureLoadingRef.current = true;
     setIsSkinLoading(true);
@@ -293,10 +319,19 @@ export default function MinecraftCharacter3D({
             }
             
             child.material = material;
+            child.material.needsUpdate = true;
+            console.log(`📋 Applied material to part ${index}:`, {
+              hasTexture: !!material.map,
+              textureSize: material.map ? `${material.map.image.width}x${material.map.image.height}` : 'none'
+            });
           }
         });
 
         console.log('✅ 3D character skin updated successfully');
+        // Force a render update
+        if (rendererRef.current && sceneRef.current && cameraRef.current) {
+          rendererRef.current.render(sceneRef.current, cameraRef.current);
+        }
         textureLoadingRef.current = false;
         setIsSkinLoading(false);
       },

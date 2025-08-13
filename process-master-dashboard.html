@@ -1,0 +1,1319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Process Master Dashboard - Real-Time Monitoring & Analytics</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f0f23;
+            color: #ccc;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .dashboard-container {
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+
+        .dashboard-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .dashboard-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: pulse 4s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        .dashboard-title {
+            font-size: 2.5em;
+            color: white;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .dashboard-subtitle {
+            font-size: 1.1em;
+            color: rgba(255,255,255,0.9);
+            position: relative;
+            z-index: 1;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .metric-card {
+            background: #1e1e2e;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #2a2a3e;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-5px);
+            border-color: #667eea;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+
+        .metric-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .metric-label {
+            font-size: 0.9em;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .metric-change {
+            font-size: 0.85em;
+            margin-top: 10px;
+            padding: 5px 10px;
+            border-radius: 20px;
+            display: inline-block;
+        }
+
+        .metric-change.positive {
+            background: rgba(76, 175, 80, 0.2);
+            color: #4caf50;
+        }
+
+        .metric-change.negative {
+            background: rgba(244, 67, 54, 0.2);
+            color: #f44336;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .process-matrix {
+            background: #1e1e2e;
+            border-radius: 12px;
+            padding: 25px;
+            border: 1px solid #2a2a3e;
+        }
+
+        .matrix-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .matrix-title {
+            font-size: 1.5em;
+            color: #fff;
+        }
+
+        .matrix-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .control-btn {
+            padding: 8px 15px;
+            background: #2a2a3e;
+            border: 1px solid #3a3a4e;
+            border-radius: 6px;
+            color: #ccc;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .control-btn:hover {
+            background: #3a3a4e;
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        .control-btn.active {
+            background: #667eea;
+            border-color: #667eea;
+            color: white;
+        }
+
+        .heatmap-container {
+            display: grid;
+            grid-template-columns: 50px 1fr;
+            gap: 10px;
+        }
+
+        .agent-labels {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            padding-top: 30px;
+        }
+
+        .agent-label {
+            height: 30px;
+            display: flex;
+            align-items: center;
+            font-size: 0.85em;
+            color: #888;
+            padding-right: 10px;
+            text-align: right;
+        }
+
+        .heatmap-grid {
+            display: grid;
+            gap: 2px;
+        }
+
+        .category-labels {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2px;
+            margin-bottom: 2px;
+        }
+
+        .category-label {
+            text-align: center;
+            font-size: 0.85em;
+            color: #888;
+            padding: 5px;
+            transform: rotate(-45deg);
+            white-space: nowrap;
+        }
+
+        .heatmap-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2px;
+        }
+
+        .heatmap-cell {
+            aspect-ratio: 1;
+            background: #2a2a3e;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .heatmap-cell:hover {
+            transform: scale(1.1);
+            z-index: 10;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        }
+
+        .heatmap-cell.low { background: #1a4d2e; color: #4caf50; }
+        .heatmap-cell.medium { background: #4a4d1a; color: #ffeb3b; }
+        .heatmap-cell.high { background: #4d1a1a; color: #f44336; }
+        .heatmap-cell.critical { background: #8b0000; color: #ff6b6b; animation: pulse-critical 2s infinite; }
+
+        @keyframes pulse-critical {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .activity-feed {
+            background: #1e1e2e;
+            border-radius: 12px;
+            padding: 25px;
+            border: 1px solid #2a2a3e;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .feed-header {
+            font-size: 1.3em;
+            color: #fff;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .live-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9em;
+            color: #4caf50;
+        }
+
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background: #4caf50;
+            border-radius: 50%;
+            animation: blink 1.5s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .activity-item {
+            padding: 15px;
+            background: #2a2a3e;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 3px solid;
+            transition: all 0.3s ease;
+        }
+
+        .activity-item:hover {
+            background: #3a3a4e;
+            transform: translateX(5px);
+        }
+
+        .activity-item.success { border-left-color: #4caf50; }
+        .activity-item.warning { border-left-color: #ff9800; }
+        .activity-item.error { border-left-color: #f44336; }
+        .activity-item.info { border-left-color: #2196f3; }
+
+        .activity-time {
+            font-size: 0.8em;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .activity-title {
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 5px;
+        }
+
+        .activity-details {
+            font-size: 0.9em;
+            color: #888;
+        }
+
+        .process-flow-viz {
+            background: #1e1e2e;
+            border-radius: 12px;
+            padding: 25px;
+            border: 1px solid #2a2a3e;
+            margin-bottom: 30px;
+        }
+
+        .sankey-diagram {
+            height: 400px;
+            position: relative;
+        }
+
+        .sankey-node {
+            position: absolute;
+            background: #2a2a3e;
+            border: 1px solid #3a3a4e;
+            border-radius: 6px;
+            padding: 10px;
+            color: #ccc;
+            font-size: 0.9em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .sankey-node:hover {
+            background: #3a3a4e;
+            border-color: #667eea;
+            transform: scale(1.05);
+            z-index: 100;
+        }
+
+        .sankey-link {
+            position: absolute;
+            background: linear-gradient(90deg, rgba(102, 126, 234, 0.3), rgba(118, 75, 162, 0.3));
+            transform-origin: left center;
+            pointer-events: none;
+        }
+
+        .dependency-graph {
+            background: #1e1e2e;
+            border-radius: 12px;
+            padding: 25px;
+            border: 1px solid #2a2a3e;
+        }
+
+        .graph-container {
+            height: 500px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .graph-node {
+            position: absolute;
+            width: 120px;
+            height: 60px;
+            background: #2a2a3e;
+            border: 2px solid #3a3a4e;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85em;
+            color: #ccc;
+            cursor: move;
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+
+        .graph-node:hover {
+            background: #3a3a4e;
+            border-color: #667eea;
+            transform: scale(1.1);
+            z-index: 100;
+        }
+
+        .graph-node.critical {
+            border-color: #f44336;
+            background: rgba(244, 67, 54, 0.1);
+        }
+
+        .graph-edge {
+            position: absolute;
+            background: #3a3a4e;
+            height: 2px;
+            transform-origin: left center;
+            z-index: 1;
+        }
+
+        .timeline-view {
+            background: #1e1e2e;
+            border-radius: 12px;
+            padding: 25px;
+            border: 1px solid #2a2a3e;
+            margin-bottom: 30px;
+        }
+
+        .timeline-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .timeline-title {
+            font-size: 1.3em;
+            color: #fff;
+        }
+
+        .timeline-scale {
+            display: flex;
+            gap: 10px;
+        }
+
+        .scale-btn {
+            padding: 5px 12px;
+            background: #2a2a3e;
+            border: 1px solid #3a3a4e;
+            border-radius: 4px;
+            color: #888;
+            cursor: pointer;
+            font-size: 0.85em;
+            transition: all 0.3s ease;
+        }
+
+        .scale-btn:hover {
+            background: #3a3a4e;
+            color: #ccc;
+        }
+
+        .scale-btn.active {
+            background: #667eea;
+            border-color: #667eea;
+            color: white;
+        }
+
+        .timeline-chart {
+            position: relative;
+            height: 300px;
+            overflow-x: auto;
+            overflow-y: hidden;
+        }
+
+        .timeline-grid {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: repeating-linear-gradient(
+                90deg,
+                #2a2a3e,
+                #2a2a3e 1px,
+                transparent 1px,
+                transparent 100px
+            );
+        }
+
+        .timeline-lane {
+            position: relative;
+            height: 40px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+
+        .timeline-bar {
+            position: absolute;
+            height: 30px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            padding: 0 15px;
+            color: white;
+            font-size: 0.85em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .timeline-bar:hover {
+            transform: scaleY(1.2);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.5);
+            z-index: 10;
+        }
+
+        .resource-utilization {
+            background: #1e1e2e;
+            border-radius: 12px;
+            padding: 25px;
+            border: 1px solid #2a2a3e;
+        }
+
+        .utilization-chart {
+            height: 200px;
+            display: flex;
+            align-items: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .utilization-bar {
+            flex: 1;
+            background: linear-gradient(180deg, #667eea, #764ba2);
+            border-radius: 4px 4px 0 0;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .utilization-bar:hover {
+            opacity: 0.8;
+            transform: scaleY(1.05);
+        }
+
+        .utilization-label {
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.8em;
+            color: #666;
+            white-space: nowrap;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: #1e1e2e;
+            border-radius: 12px;
+            max-width: 900px;
+            max-height: 80vh;
+            overflow-y: auto;
+            padding: 30px;
+            border: 1px solid #3a3a4e;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #2a2a3e;
+        }
+
+        .modal-title {
+            font-size: 1.5em;
+            color: #fff;
+        }
+
+        .modal-close {
+            font-size: 1.5em;
+            cursor: pointer;
+            color: #666;
+            transition: color 0.3s ease;
+        }
+
+        .modal-close:hover {
+            color: #f44336;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #1e1e2e;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #3a3a4e;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #4a4a5e;
+        }
+
+        /* Tooltips */
+        .tooltip {
+            position: absolute;
+            background: #000;
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.85em;
+            pointer-events: none;
+            z-index: 10000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .tooltip.visible {
+            opacity: 1;
+        }
+
+        .tooltip::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-top: 5px solid #000;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <div class="dashboard-header">
+            <h1 class="dashboard-title">🎯 Process Master Dashboard</h1>
+            <p class="dashboard-subtitle">Real-Time Process Monitoring & Analytics</p>
+        </div>
+
+        <!-- Key Metrics -->
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-value">127</div>
+                <div class="metric-label">Active Processes</div>
+                <div class="metric-change positive">+12% from last week</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">14</div>
+                <div class="metric-label">Active Agents</div>
+                <div class="metric-change positive">All operational</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">98.7%</div>
+                <div class="metric-label">Success Rate</div>
+                <div class="metric-change positive">+2.3% improvement</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">2.3s</div>
+                <div class="metric-label">Avg Response Time</div>
+                <div class="metric-change positive">-450ms faster</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">1,247</div>
+                <div class="metric-label">Executions Today</div>
+                <div class="metric-change positive">+23% vs yesterday</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">$48.5K</div>
+                <div class="metric-label">Cost Savings MTD</div>
+                <div class="metric-change positive">+$12K vs target</div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <!-- Process Matrix Heatmap -->
+            <div class="process-matrix">
+                <div class="matrix-header">
+                    <div class="matrix-title">Process Distribution Matrix</div>
+                    <div class="matrix-controls">
+                        <button class="control-btn active" onclick="updateHeatmap('processes')">Processes</button>
+                        <button class="control-btn" onclick="updateHeatmap('activity')">Activity</button>
+                        <button class="control-btn" onclick="updateHeatmap('performance')">Performance</button>
+                    </div>
+                </div>
+                <div class="heatmap-container">
+                    <div class="agent-labels">
+                        <div class="agent-label">General</div>
+                        <div class="agent-label">Orchestrator</div>
+                        <div class="agent-label">Reviewer</div>
+                        <div class="agent-label">Security</div>
+                        <div class="agent-label">QA</div>
+                        <div class="agent-label">DevOps</div>
+                        <div class="agent-label">Capability</div>
+                        <div class="agent-label">Failure</div>
+                        <div class="agent-label">Communication</div>
+                        <div class="agent-label">Swimlane</div>
+                        <div class="agent-label">Enhanced</div>
+                        <div class="agent-label">Cross-Project</div>
+                        <div class="agent-label">Statusline</div>
+                        <div class="agent-label">Development</div>
+                    </div>
+                    <div class="heatmap-grid">
+                        <div class="category-labels">
+                            <div class="category-label">QA</div>
+                            <div class="category-label">DevOps</div>
+                            <div class="category-label">Security</div>
+                            <div class="category-label">Development</div>
+                        </div>
+                        <!-- Generate heatmap cells dynamically -->
+                        <div id="heatmapCells"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Activity Feed -->
+            <div class="activity-feed">
+                <div class="feed-header">
+                    <span>Recent Activity</span>
+                    <div class="live-indicator">
+                        <div class="live-dot"></div>
+                        <span>LIVE</span>
+                    </div>
+                </div>
+                <div id="activityFeed">
+                    <!-- Activity items will be inserted here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Process Flow Visualization -->
+        <div class="process-flow-viz">
+            <div class="matrix-header">
+                <div class="matrix-title">Process Flow Sankey Diagram</div>
+                <div class="matrix-controls">
+                    <button class="control-btn active" onclick="updateSankey('all')">All Flows</button>
+                    <button class="control-btn" onclick="updateSankey('critical')">Critical Path</button>
+                    <button class="control-btn" onclick="updateSankey('bottlenecks')">Bottlenecks</button>
+                </div>
+            </div>
+            <div class="sankey-diagram" id="sankeyDiagram">
+                <!-- Sankey diagram will be generated here -->
+            </div>
+        </div>
+
+        <!-- Timeline View -->
+        <div class="timeline-view">
+            <div class="timeline-header">
+                <div class="timeline-title">Execution Timeline</div>
+                <div class="timeline-scale">
+                    <button class="scale-btn" onclick="setTimeScale('1h')">1H</button>
+                    <button class="scale-btn active" onclick="setTimeScale('24h')">24H</button>
+                    <button class="scale-btn" onclick="setTimeScale('7d')">7D</button>
+                    <button class="scale-btn" onclick="setTimeScale('30d')">30D</button>
+                </div>
+            </div>
+            <div class="timeline-chart">
+                <div class="timeline-grid"></div>
+                <div id="timelineLanes">
+                    <!-- Timeline bars will be generated here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Resource Utilization -->
+        <div class="resource-utilization">
+            <div class="matrix-header">
+                <div class="matrix-title">Agent Resource Utilization</div>
+            </div>
+            <div class="utilization-chart" id="utilizationChart">
+                <!-- Utilization bars will be generated here -->
+            </div>
+        </div>
+
+        <!-- Dependency Graph -->
+        <div class="dependency-graph">
+            <div class="matrix-header">
+                <div class="matrix-title">Process Dependency Graph</div>
+                <div class="matrix-controls">
+                    <button class="control-btn" onclick="resetGraph()">Reset View</button>
+                    <button class="control-btn" onclick="highlightCritical()">Critical Path</button>
+                    <button class="control-btn" onclick="exportGraph()">Export</button>
+                </div>
+            </div>
+            <div class="graph-container" id="dependencyGraph">
+                <!-- Graph nodes and edges will be generated here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Process Detail Modal -->
+    <div id="detailModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title" id="modalTitle">Process Details</div>
+                <span class="modal-close" onclick="closeModal()">&times;</span>
+            </div>
+            <div id="modalBody">
+                <!-- Dynamic content will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Tooltip -->
+    <div class="tooltip" id="tooltip"></div>
+
+    <script>
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeHeatmap();
+            initializeActivityFeed();
+            initializeSankeyDiagram();
+            initializeTimeline();
+            initializeUtilizationChart();
+            initializeDependencyGraph();
+            startLiveUpdates();
+        });
+
+        // Initialize heatmap
+        function initializeHeatmap() {
+            const agents = 14;
+            const categories = 4;
+            const heatmapCells = document.getElementById('heatmapCells');
+            
+            for (let i = 0; i < agents; i++) {
+                const row = document.createElement('div');
+                row.className = 'heatmap-row';
+                
+                for (let j = 0; j < categories; j++) {
+                    const cell = document.createElement('div');
+                    const value = Math.floor(Math.random() * 20);
+                    cell.className = `heatmap-cell ${getHeatmapClass(value)}`;
+                    cell.textContent = value;
+                    cell.onclick = () => showCellDetail(i, j, value);
+                    cell.onmouseover = (e) => showTooltip(e, `${value} processes`);
+                    cell.onmouseout = () => hideTooltip();
+                    row.appendChild(cell);
+                }
+                
+                heatmapCells.appendChild(row);
+            }
+        }
+
+        function getHeatmapClass(value) {
+            if (value < 5) return 'low';
+            if (value < 10) return 'medium';
+            if (value < 15) return 'high';
+            return 'critical';
+        }
+
+        // Initialize activity feed
+        function initializeActivityFeed() {
+            const feed = document.getElementById('activityFeed');
+            const activities = [
+                { type: 'success', time: '2 min ago', title: 'Deployment Complete', details: 'Blue-Green deployment to production successful' },
+                { type: 'info', time: '5 min ago', title: 'Security Scan Started', details: 'Zero-day vulnerability scan initiated on all services' },
+                { type: 'warning', time: '12 min ago', title: 'Performance Alert', details: 'Response time increased by 15% on API Gateway' },
+                { type: 'success', time: '18 min ago', title: 'Test Suite Passed', details: 'All 847 unit tests passed successfully' },
+                { type: 'error', time: '25 min ago', title: 'Rollback Triggered', details: 'Automatic rollback due to failed health checks' },
+                { type: 'info', time: '32 min ago', title: 'Scaling Event', details: 'Auto-scaled from 3 to 5 instances based on load' },
+                { type: 'success', time: '45 min ago', title: 'Code Review Complete', details: 'Automated review found no critical issues' },
+                { type: 'warning', time: '1 hour ago', title: 'Dependency Update', details: '3 packages have security updates available' }
+            ];
+
+            activities.forEach(activity => {
+                const item = document.createElement('div');
+                item.className = `activity-item ${activity.type}`;
+                item.innerHTML = `
+                    <div class="activity-time">${activity.time}</div>
+                    <div class="activity-title">${activity.title}</div>
+                    <div class="activity-details">${activity.details}</div>
+                `;
+                item.onclick = () => showActivityDetail(activity);
+                feed.appendChild(item);
+            });
+        }
+
+        // Initialize Sankey diagram
+        function initializeSankeyDiagram() {
+            const diagram = document.getElementById('sankeyDiagram');
+            
+            // Create nodes
+            const nodes = [
+                { id: 'input', label: 'Input', x: 50, y: 200 },
+                { id: 'qa', label: 'QA Processes', x: 250, y: 100 },
+                { id: 'dev', label: 'Dev Processes', x: 250, y: 200 },
+                { id: 'sec', label: 'Security', x: 250, y: 300 },
+                { id: 'deploy', label: 'Deployment', x: 450, y: 150 },
+                { id: 'monitor', label: 'Monitoring', x: 450, y: 250 },
+                { id: 'output', label: 'Production', x: 650, y: 200 }
+            ];
+
+            nodes.forEach(node => {
+                const nodeEl = document.createElement('div');
+                nodeEl.className = 'sankey-node';
+                nodeEl.style.left = node.x + 'px';
+                nodeEl.style.top = node.y + 'px';
+                nodeEl.textContent = node.label;
+                nodeEl.onclick = () => showNodeDetail(node);
+                diagram.appendChild(nodeEl);
+            });
+
+            // Create links
+            const links = [
+                { from: 'input', to: 'qa', width: 30 },
+                { from: 'input', to: 'dev', width: 40 },
+                { from: 'input', to: 'sec', width: 20 },
+                { from: 'qa', to: 'deploy', width: 25 },
+                { from: 'dev', to: 'deploy', width: 35 },
+                { from: 'sec', to: 'monitor', width: 15 },
+                { from: 'deploy', to: 'output', width: 50 },
+                { from: 'monitor', to: 'output', width: 15 }
+            ];
+
+            links.forEach(link => {
+                const linkEl = document.createElement('div');
+                linkEl.className = 'sankey-link';
+                // Calculate link position and angle
+                const fromNode = nodes.find(n => n.id === link.from);
+                const toNode = nodes.find(n => n.id === link.to);
+                const dx = toNode.x - fromNode.x - 50;
+                const dy = toNode.y - fromNode.y;
+                const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+                const length = Math.sqrt(dx * dx + dy * dy);
+                
+                linkEl.style.left = (fromNode.x + 50) + 'px';
+                linkEl.style.top = (fromNode.y + 15 - link.width/2) + 'px';
+                linkEl.style.width = length + 'px';
+                linkEl.style.height = link.width + 'px';
+                linkEl.style.transform = `rotate(${angle}deg)`;
+                
+                diagram.appendChild(linkEl);
+            });
+        }
+
+        // Initialize timeline
+        function initializeTimeline() {
+            const lanes = document.getElementById('timelineLanes');
+            const processes = [
+                { name: 'Build & Test', start: 10, duration: 30, agent: 'DevOps' },
+                { name: 'Security Scan', start: 45, duration: 20, agent: 'Security' },
+                { name: 'Code Review', start: 70, duration: 15, agent: 'Reviewer' },
+                { name: 'Deployment', start: 90, duration: 25, agent: 'Orchestrator' },
+                { name: 'Monitoring', start: 120, duration: 40, agent: 'Enhanced' },
+                { name: 'Performance Test', start: 170, duration: 35, agent: 'QA' }
+            ];
+
+            processes.forEach(process => {
+                const lane = document.createElement('div');
+                lane.className = 'timeline-lane';
+                
+                const bar = document.createElement('div');
+                bar.className = 'timeline-bar';
+                bar.style.left = (process.start * 3) + 'px';
+                bar.style.width = (process.duration * 3) + 'px';
+                bar.textContent = process.name;
+                bar.onclick = () => showProcessDetail(process);
+                
+                lane.appendChild(bar);
+                lanes.appendChild(lane);
+            });
+        }
+
+        // Initialize utilization chart
+        function initializeUtilizationChart() {
+            const chart = document.getElementById('utilizationChart');
+            const agents = [
+                { name: 'General', utilization: 75 },
+                { name: 'Orchestrator', utilization: 82 },
+                { name: 'Reviewer', utilization: 65 },
+                { name: 'Security', utilization: 90 },
+                { name: 'QA', utilization: 78 },
+                { name: 'DevOps', utilization: 88 },
+                { name: 'Capability', utilization: 45 },
+                { name: 'Failure', utilization: 30 },
+                { name: 'Comm', utilization: 55 },
+                { name: 'Swimlane', utilization: 25 },
+                { name: 'Enhanced', utilization: 70 },
+                { name: 'Cross-Proj', utilization: 40 },
+                { name: 'Status', utilization: 35 },
+                { name: 'Dev', utilization: 60 }
+            ];
+
+            agents.forEach(agent => {
+                const bar = document.createElement('div');
+                bar.className = 'utilization-bar';
+                bar.style.height = (agent.utilization * 2) + 'px';
+                bar.innerHTML = `<div class="utilization-label">${agent.name}</div>`;
+                bar.onmouseover = (e) => showTooltip(e, `${agent.utilization}% utilized`);
+                bar.onmouseout = () => hideTooltip();
+                chart.appendChild(bar);
+            });
+        }
+
+        // Initialize dependency graph
+        function initializeDependencyGraph() {
+            const graph = document.getElementById('dependencyGraph');
+            
+            // Create nodes with positions
+            const nodes = [
+                { id: 'init', label: 'Initialize', x: 100, y: 50, critical: false },
+                { id: 'auth', label: 'Auth Check', x: 250, y: 50, critical: true },
+                { id: 'validate', label: 'Validation', x: 400, y: 50, critical: true },
+                { id: 'process', label: 'Processing', x: 250, y: 150, critical: false },
+                { id: 'test', label: 'Testing', x: 100, y: 250, critical: true },
+                { id: 'deploy', label: 'Deploy', x: 400, y: 250, critical: true },
+                { id: 'monitor', label: 'Monitor', x: 550, y: 150, critical: false },
+                { id: 'complete', label: 'Complete', x: 700, y: 150, critical: false }
+            ];
+
+            // Create edges
+            const edges = [
+                { from: 'init', to: 'auth' },
+                { from: 'auth', to: 'validate' },
+                { from: 'validate', to: 'process' },
+                { from: 'process', to: 'test' },
+                { from: 'test', to: 'deploy' },
+                { from: 'deploy', to: 'monitor' },
+                { from: 'monitor', to: 'complete' },
+                { from: 'validate', to: 'monitor' }
+            ];
+
+            // Draw edges first (so they appear behind nodes)
+            edges.forEach(edge => {
+                const fromNode = nodes.find(n => n.id === edge.from);
+                const toNode = nodes.find(n => n.id === edge.to);
+                
+                const edgeEl = document.createElement('div');
+                edgeEl.className = 'graph-edge';
+                
+                const dx = toNode.x - fromNode.x;
+                const dy = toNode.y - toNode.y;
+                const length = Math.sqrt(dx * dx + dy * dy);
+                const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+                
+                edgeEl.style.left = (fromNode.x + 60) + 'px';
+                edgeEl.style.top = (fromNode.y + 30) + 'px';
+                edgeEl.style.width = Math.abs(toNode.x - fromNode.x - 60) + 'px';
+                edgeEl.style.transform = `rotate(${angle}deg)`;
+                
+                graph.appendChild(edgeEl);
+            });
+
+            // Draw nodes
+            nodes.forEach(node => {
+                const nodeEl = document.createElement('div');
+                nodeEl.className = `graph-node ${node.critical ? 'critical' : ''}`;
+                nodeEl.style.left = node.x + 'px';
+                nodeEl.style.top = node.y + 'px';
+                nodeEl.textContent = node.label;
+                nodeEl.onclick = () => showNodeDetail(node);
+                
+                // Make nodes draggable
+                let isDragging = false;
+                let startX, startY;
+                
+                nodeEl.onmousedown = (e) => {
+                    isDragging = true;
+                    startX = e.clientX - node.x;
+                    startY = e.clientY - node.y;
+                };
+                
+                document.onmousemove = (e) => {
+                    if (isDragging) {
+                        node.x = e.clientX - startX;
+                        node.y = e.clientY - startY;
+                        nodeEl.style.left = node.x + 'px';
+                        nodeEl.style.top = node.y + 'px';
+                    }
+                };
+                
+                document.onmouseup = () => {
+                    isDragging = false;
+                };
+                
+                graph.appendChild(nodeEl);
+            });
+        }
+
+        // Live updates
+        function startLiveUpdates() {
+            setInterval(() => {
+                // Update metrics
+                updateMetrics();
+                // Add new activity
+                addNewActivity();
+                // Update heatmap
+                updateHeatmapValues();
+            }, 5000);
+        }
+
+        function updateMetrics() {
+            const metrics = document.querySelectorAll('.metric-value');
+            metrics.forEach(metric => {
+                const current = parseFloat(metric.textContent);
+                const change = (Math.random() - 0.5) * 2;
+                const newValue = current + change;
+                metric.textContent = metric.textContent.includes('%') ? 
+                    newValue.toFixed(1) + '%' : 
+                    metric.textContent.includes('.') ? 
+                    newValue.toFixed(1) + 's' : 
+                    Math.floor(newValue);
+            });
+        }
+
+        function addNewActivity() {
+            const feed = document.getElementById('activityFeed');
+            const types = ['success', 'info', 'warning', 'error'];
+            const titles = [
+                'Process Completed',
+                'Agent Started',
+                'Validation Passed',
+                'Deployment Initiated',
+                'Test Executed',
+                'Scan Complete'
+            ];
+            
+            const newActivity = document.createElement('div');
+            const type = types[Math.floor(Math.random() * types.length)];
+            newActivity.className = `activity-item ${type}`;
+            newActivity.innerHTML = `
+                <div class="activity-time">Just now</div>
+                <div class="activity-title">${titles[Math.floor(Math.random() * titles.length)]}</div>
+                <div class="activity-details">Automated process execution #${Math.floor(Math.random() * 10000)}</div>
+            `;
+            
+            feed.insertBefore(newActivity, feed.firstChild);
+            
+            // Remove old activities
+            while (feed.children.length > 10) {
+                feed.removeChild(feed.lastChild);
+            }
+        }
+
+        function updateHeatmapValues() {
+            const cells = document.querySelectorAll('.heatmap-cell');
+            cells.forEach(cell => {
+                const currentValue = parseInt(cell.textContent);
+                const change = Math.floor(Math.random() * 3) - 1;
+                const newValue = Math.max(0, currentValue + change);
+                cell.textContent = newValue;
+                cell.className = `heatmap-cell ${getHeatmapClass(newValue)}`;
+            });
+        }
+
+        // Utility functions
+        function showTooltip(event, text) {
+            const tooltip = document.getElementById('tooltip');
+            tooltip.textContent = text;
+            tooltip.style.left = event.pageX + 'px';
+            tooltip.style.top = (event.pageY - 40) + 'px';
+            tooltip.classList.add('visible');
+        }
+
+        function hideTooltip() {
+            document.getElementById('tooltip').classList.remove('visible');
+        }
+
+        function showProcessDetail(process) {
+            const modal = document.getElementById('detailModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalBody = document.getElementById('modalBody');
+            
+            modalTitle.textContent = `Process: ${process.name || 'Unknown'}`;
+            modalBody.innerHTML = `
+                <div style="color: #ccc; line-height: 1.8;">
+                    <p><strong>Agent:</strong> ${process.agent || 'Multiple'}</p>
+                    <p><strong>Duration:</strong> ${process.duration || 'Variable'} minutes</p>
+                    <p><strong>Status:</strong> <span style="color: #4caf50;">Active</span></p>
+                    <p><strong>Last Execution:</strong> ${new Date().toLocaleString()}</p>
+                    <p><strong>Success Rate:</strong> 98.5%</p>
+                    <p><strong>Dependencies:</strong> Authentication, Validation, Monitoring</p>
+                    <h3 style="margin-top: 20px; color: #fff;">Execution Steps</h3>
+                    <ol style="padding-left: 20px;">
+                        <li>Initialize process environment</li>
+                        <li>Validate input parameters</li>
+                        <li>Execute main process logic</li>
+                        <li>Perform quality checks</li>
+                        <li>Generate execution report</li>
+                    </ol>
+                </div>
+            `;
+            
+            modal.classList.add('active');
+        }
+
+        function showNodeDetail(node) {
+            showProcessDetail({ name: node.label, agent: 'Various' });
+        }
+
+        function showActivityDetail(activity) {
+            showProcessDetail({ name: activity.title, details: activity.details });
+        }
+
+        function showCellDetail(agent, category, value) {
+            const agentNames = ['General', 'Orchestrator', 'Reviewer', 'Security', 'QA', 'DevOps', 
+                               'Capability', 'Failure', 'Communication', 'Swimlane', 'Enhanced', 
+                               'Cross-Project', 'Statusline', 'Development'];
+            const categoryNames = ['QA', 'DevOps', 'Security', 'Development'];
+            
+            showProcessDetail({ 
+                name: `${agentNames[agent]} - ${categoryNames[category]}`,
+                details: `${value} active processes in this category`
+            });
+        }
+
+        function closeModal() {
+            document.getElementById('detailModal').classList.remove('active');
+        }
+
+        function updateHeatmap(type) {
+            document.querySelectorAll('.matrix-controls .control-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Re-initialize heatmap with different data
+            document.getElementById('heatmapCells').innerHTML = '';
+            initializeHeatmap();
+        }
+
+        function updateSankey(type) {
+            document.querySelectorAll('.process-flow-viz .control-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Re-initialize Sankey with different data
+            document.getElementById('sankeyDiagram').innerHTML = '';
+            initializeSankeyDiagram();
+        }
+
+        function setTimeScale(scale) {
+            document.querySelectorAll('.scale-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Re-scale timeline
+            document.getElementById('timelineLanes').innerHTML = '';
+            initializeTimeline();
+        }
+
+        function resetGraph() {
+            document.getElementById('dependencyGraph').innerHTML = '';
+            initializeDependencyGraph();
+        }
+
+        function highlightCritical() {
+            document.querySelectorAll('.graph-node').forEach(node => {
+                if (!node.classList.contains('critical')) {
+                    node.style.opacity = '0.3';
+                }
+            });
+        }
+
+        function exportGraph() {
+            console.log('Exporting graph...');
+            // Implementation would export the graph data
+        }
+
+        // Close modal on outside click
+        window.onclick = function(event) {
+            const modal = document.getElementById('detailModal');
+            if (event.target == modal) {
+                modal.classList.remove('active');
+            }
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Refactoring Performance Test</title>
+    <style>
+        body {
+            font-family: monospace;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #00ff00;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #00ff00;
+            text-align: center;
+        }
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .skin-card {
+            background: #2a2a2a;
+            border: 1px solid #00ff00;
+            padding: 10px;
+            text-align: center;
+        }
+        .skin-card img {
+            width: 100%;
+            image-rendering: pixelated;
+            border: 1px solid #444;
+        }
+        .skin-card .theme {
+            color: #00ffff;
+            margin: 5px 0;
+        }
+        .skin-card .time {
+            color: #ffff00;
+            font-size: 12px;
+        }
+        .stats {
+            background: #2a2a2a;
+            border: 2px solid #00ff00;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .stats h2 {
+            color: #00ffff;
+            margin-top: 0;
+        }
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+        }
+        .stat-label {
+            color: #888;
+        }
+        .stat-value {
+            color: #00ff00;
+            font-weight: bold;
+        }
+        .improvement {
+            color: #00ff00;
+        }
+        .degradation {
+            color: #ff0000;
+        }
+        button {
+            background: #00ff00;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            font-family: monospace;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        button:hover {
+            background: #00ff88;
+        }
+        .loading {
+            text-align: center;
+            color: #ffff00;
+            font-size: 20px;
+            margin: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Skin Generator Refactoring Performance Test</h1>
+        
+        <div class="stats">
+            <h2>📊 Performance Comparison</h2>
+            <div class="stat-row">
+                <span class="stat-label">Test Status:</span>
+                <span class="stat-value" id="status">Ready</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">Total Skins Generated:</span>
+                <span class="stat-value" id="totalSkins">0</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">Average Generation Time:</span>
+                <span class="stat-value" id="avgTime">0ms</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">Min Time:</span>
+                <span class="stat-value" id="minTime">0ms</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">Max Time:</span>
+                <span class="stat-value" id="maxTime">0ms</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">Performance vs Original:</span>
+                <span class="stat-value" id="improvement">Calculating...</span>
+            </div>
+        </div>
+
+        <div style="text-align: center;">
+            <button onclick="runTest()">🎮 Run Performance Test</button>
+            <button onclick="clearResults()">🗑️ Clear Results</button>
+        </div>
+
+        <div id="loading" class="loading" style="display: none;">
+            ⏳ Generating skins... Please wait...
+        </div>
+
+        <div id="results" class="test-grid"></div>
+    </div>
+
+    <script type="module">
+        // Import the refactored generator
+        import { AdvancedSkinGenerator } from './src/services/advancedSkinGenerator.ts';
+
+        const testPrompts = [
+            'knight in shining armor',
+            'space robot with blue lights',
+            'wizard with purple robes',
+            'ninja in black outfit',
+            'pirate with red bandana',
+            'viking warrior with horned helmet',
+            'cyberpunk hacker with neon colors',
+            'nature ranger in green',
+            'fire mage with burning hands',
+            'ice queen with crystal crown'
+        ];
+
+        const generator = AdvancedSkinGenerator.getInstance();
+        const times = [];
+
+        window.runTest = async function() {
+            const resultsDiv = document.getElementById('results');
+            const loadingDiv = document.getElementById('loading');
+            const statusSpan = document.getElementById('status');
+            
+            resultsDiv.innerHTML = '';
+            times.length = 0;
+            loadingDiv.style.display = 'block';
+            statusSpan.textContent = 'Running...';
+
+            for (const prompt of testPrompts) {
+                const startTime = performance.now();
+                
+                try {
+                    const skinDataURL = await generator.generateSkinFromPrompt(prompt);
+                    const endTime = performance.now();
+                    const duration = endTime - startTime;
+                    times.push(duration);
+
+                    // Display the result
+                    const card = document.createElement('div');
+                    card.className = 'skin-card';
+                    card.innerHTML = `
+                        <img src="${skinDataURL}" alt="${prompt}" />
+                        <div class="theme">${prompt.split(' ')[0].toUpperCase()}</div>
+                        <div class="time">${duration.toFixed(2)}ms</div>
+                    `;
+                    resultsDiv.appendChild(card);
+                } catch (error) {
+                    console.error(`Failed to generate skin for "${prompt}":`, error);
+                }
+            }
+
+            loadingDiv.style.display = 'none';
+            updateStats();
+        };
+
+        function updateStats() {
+            if (times.length === 0) return;
+
+            const avgTime = times.reduce((a, b) => a + b, 0) / times.length;
+            const minTime = Math.min(...times);
+            const maxTime = Math.max(...times);
+
+            document.getElementById('status').textContent = 'Complete';
+            document.getElementById('totalSkins').textContent = times.length;
+            document.getElementById('avgTime').textContent = avgTime.toFixed(2) + 'ms';
+            document.getElementById('minTime').textContent = minTime.toFixed(2) + 'ms';
+            document.getElementById('maxTime').textContent = maxTime.toFixed(2) + 'ms';
+
+            // Compare with original benchmark (150ms average from report)
+            const originalAvg = 150;
+            const improvement = ((originalAvg - avgTime) / originalAvg * 100).toFixed(1);
+            const improvementSpan = document.getElementById('improvement');
+            
+            if (improvement > 0) {
+                improvementSpan.className = 'stat-value improvement';
+                improvementSpan.textContent = `${improvement}% faster ✅`;
+            } else {
+                improvementSpan.className = 'stat-value degradation';
+                improvementSpan.textContent = `${Math.abs(improvement)}% slower ❌`;
+            }
+        }
+
+        window.clearResults = function() {
+            document.getElementById('results').innerHTML = '';
+            times.length = 0;
+            document.getElementById('status').textContent = 'Ready';
+            document.getElementById('totalSkins').textContent = '0';
+            document.getElementById('avgTime').textContent = '0ms';
+            document.getElementById('minTime').textContent = '0ms';
+            document.getElementById('maxTime').textContent = '0ms';
+            document.getElementById('improvement').textContent = 'Calculating...';
+        };
+    </script>
+</body>
+</html>

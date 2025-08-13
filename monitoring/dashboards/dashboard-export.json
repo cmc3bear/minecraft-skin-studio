@@ -1,0 +1,112 @@
+{
+  "project": "minecraft-skin-studio",
+  "version": "1.0.0",
+  "timestamp": "2025-08-11T03:25:31.055Z",
+  "health": {
+    "score": 78,
+    "status": "healthy",
+    "trend": "improving"
+  },
+  "kpis": {
+    "developmentVelocity": {
+      "value": 1,
+      "target": 10,
+      "unit": "commits/week"
+    },
+    "codeQuality": {
+      "value": 100,
+      "target": 100,
+      "unit": "score"
+    },
+    "performance": {
+      "value": 57,
+      "target": 60,
+      "unit": "fps"
+    },
+    "testCoverage": {
+      "value": 0,
+      "target": 80,
+      "unit": "%"
+    }
+  },
+  "alerts": [
+    {
+      "level": "warning",
+      "message": "No test coverage detected",
+      "timestamp": "2025-08-11T03:25:31.548Z"
+    }
+  ],
+  "metrics": {
+    "git": {
+      "recentCommits": 1,
+      "contributors": 1,
+      "branches": 3,
+      "lastCommitStats": "44 files changed, 13250 insertions(+), 92 deletions(-)",
+      "lastCommitDate": "2025-08-11T03:25:31.219Z"
+    },
+    "build": {
+      "totalBundleSize": "981.64 KB",
+      "numberOfBundles": 11,
+      "bundles": [
+        {
+          "name": "advancedSkinGenerator-C5xYr8nf.js",
+          "size": "4.51 KB"
+        },
+        {
+          "name": "ai-BABzGENv.js",
+          "size": "94.94 KB"
+        },
+        {
+          "name": "AIAssistant-CKw42jKb.js",
+          "size": "7.63 KB"
+        },
+        {
+          "name": "aiService-tJoGiAvU.js",
+          "size": "22.16 KB"
+        },
+        {
+          "name": "guardian-5o67oos8.js",
+          "size": "1.30 KB"
+        }
+      ],
+      "buildDate": "2025-08-10T19:01:13.370Z"
+    },
+    "quality": {
+      "fileTypes": {
+        "components": 12,
+        "services": 10,
+        "utils": 8,
+        "tests": 1,
+        "total": 31
+      },
+      "totalLines": 11669,
+      "averageLinesPerFile": 376,
+      "typeScriptErrors": 0,
+      "testCoverage": 0
+    },
+    "performance": {
+      "fps": {
+        "current": 58,
+        "average": 57,
+        "min": 45,
+        "max": 60,
+        "target": 60
+      },
+      "memoryUsage": {
+        "current": "125 MB",
+        "peak": "180 MB",
+        "average": "130 MB"
+      },
+      "loadTime": {
+        "initial": "3.2s",
+        "cached": "1.8s",
+        "target": "< 2s"
+      },
+      "canvasPerformance": {
+        "renderTime": "16ms",
+        "drawCalls": 150,
+        "pixelOperations": 4096
+      }
+    }
+  }
+}

@@ -42,13 +42,21 @@ function EditorPage({ projects, onSave }: EditorPageProps) {
   const [showUVOverlay, setShowUVOverlay] = useState(false);
 
   const handleSkinSelect = (skinType: string) => {
+    console.log('🎨 handleSkinSelect called with:', skinType);
     const skinData = getPreloadedSkin(skinType);
-    if (skinData && canvasRef.current) {
-      canvasRef.current.setImageData(skinData);
+    console.log('🎨 Retrieved skin data:', skinData ? 'Found' : 'Not found');
+    
+    if (skinData && skinData.imageData && canvasRef.current) {
+      console.log('🎨 Setting image data on canvas...');
+      canvasRef.current.setImageData(skinData.imageData);
       setCurrentTemplate(skinType);
       setShowTemplateSelector(false);
-      // Update 3D preview after loading new template
-      setTimeout(update3DPreview, 100);
+      
+      // Force canvas redraw by triggering pixel change
+      requestAnimationFrame(() => {
+        console.log('🎨 Triggering 3D preview update...');
+        update3DPreview();
+      });
     }
   };
 
@@ -64,17 +72,34 @@ function EditorPage({ projects, onSave }: EditorPageProps) {
 
   // Debounced 3D preview update to prevent race conditions
   const update3DPreview = useCallback(() => {
+    console.log('🎮 update3DPreview called, current state:', {
+      isUpdating3D,
+      hasCanvas: !!canvasRef.current,
+      hasPendingTimeout: !!update3DTimeoutRef.current
+    });
+
     // Clear any pending updates
     if (update3DTimeoutRef.current) {
+      console.log('🎮 Clearing previous timeout');
       clearTimeout(update3DTimeoutRef.current);
+      update3DTimeoutRef.current = null;
     }
 
     // Debounce updates to prevent race conditions
     update3DTimeoutRef.current = window.setTimeout(async () => {
-      if (isUpdating3D || !canvasRef.current) {
+      console.log('🎮 Timeout fired, checking conditions...');
+      
+      if (isUpdating3D) {
+        console.log('🎮 Already updating, skipping...');
+        return;
+      }
+      
+      if (!canvasRef.current) {
+        console.log('🎮 No canvas ref, skipping...');
         return;
       }
 
+      console.log('🎮 Starting 3D update process...');
       setIsUpdating3D(true);
 
       try {
@@ -82,17 +107,26 @@ function EditorPage({ projects, onSave }: EditorPageProps) {
         await new Promise(resolve => requestAnimationFrame(resolve));
         
         const imageData = canvasRef.current.getImageData();
-        console.log('🎮 Updating 3D preview with canvas data');
-        console.log('📊 Canvas data length:', imageData?.length || 0);
+        console.log('🎮 Got canvas image data:', {
+          hasData: !!imageData,
+          length: imageData?.length || 0,
+          startsWithData: imageData?.startsWith('data:') || false
+        });
         
-        // Update 3D skin data atomically
-        setCurrentSkinData(imageData);
-        console.log('✅ 3D preview state updated');
+        if (imageData && imageData.length > 0) {
+          // Update 3D skin data atomically
+          setCurrentSkinData(imageData);
+          console.log('✅ 3D preview state updated successfully');
+        } else {
+          console.warn('⚠️ No image data from canvas');
+        }
         
       } catch (error) {
         console.error('❌ Failed to get canvas image data:', error);
       } finally {
         setIsUpdating3D(false);
+        update3DTimeoutRef.current = null;
+        console.log('🎮 3D update process completed');
       }
     }, 100); // 100ms debounce to batch multiple rapid changes
   }, [isUpdating3D]);
@@ -470,8 +504,32 @@ function EditorPage({ projects, onSave }: EditorPageProps) {
       
       {showTemplateSelector && (
         <SkinTemplateSelector
-          currentTemplate={currentTemplate}
-          onSkinSelect={handleSkinSelect}
+          currentSkin={currentTemplate}
+          onSkinSelect={(skinData: string, skinInfo: PreloadedSkin) => {
+            console.log('🎨 Template selector callback with:', skinInfo.id);
+            console.log('🎨 Skin data length:', skinData ? skinData.length : 'No data');
+            
+            if (canvasRef.current && skinData) {
+              console.log('🎨 Setting template skin data on canvas...');
+              canvasRef.current.setImageData(skinData);
+              setCurrentTemplate(skinInfo.id);
+              setShowTemplateSelector(false);
+              
+              // Force canvas to refresh and update 3D preview
+              requestAnimationFrame(() => {
+                console.log('🎨 Triggering 3D preview update from template...');
+                update3DPreview();
+                
+                // Double-check by forcing another update to ensure it takes
+                console.log('🎨 Scheduling additional 3D update as fallback...');
+                // Trigger a fake pixel change to ensure 3D updates
+                setTimeout(() => update3DPreview(), 50);
+              });
+            } else {
+              console.error('❌ Missing canvas ref or skin data');
+            }
+          }}
+          isVisible={showTemplateSelector}
           onClose={() => setShowTemplateSelector(false)}
         />
       )}

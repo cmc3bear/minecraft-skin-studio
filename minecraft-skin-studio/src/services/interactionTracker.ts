@@ -44,6 +44,21 @@ export interface InteractionDetails {
   keyPressed?: string;
   duration?: number;
   metadata?: Record<string, any>;
+  originalError?: string;
+  metric?: any;
+  degradationPercentage?: number;
+  toolName?: string;
+  color?: string;
+  pixelsModified?: number;
+  exportType?: string;
+  fps?: number;
+  errorMessage?: string;
+  response?: any;
+  responseTime?: number;
+  userEmotionalState?: 'frustrated' | 'confused' | 'pleased' | 'neutral';
+  userFriendlyMessage?: string;
+  actualValue?: any;
+  targetValue?: any;
 }
 
 export interface InteractionContext {
